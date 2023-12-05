@@ -1,0 +1,72 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+.amazing {
+  width: 100%;
+  height: 100px;
+}
+.amazing .text {
+  width: 1265px;
+  height: 60px;
+  margin: 0 auto;
+}
+.amazing .text .right {
+  width: 350px;
+  height: inherit;
+}
+.amazing .text .right img {
+  width: 320px;
+  height: inherit;
+  object-fit: cover;
+  text-align: center;
+  display: inline-block;
+  position: relative;
+  right: 25px;
+  margin-top: 35px;
+}
+.amazing .text .timetitle {
+  height: 60px;
+  display: inline-block;
+  position: absolute;
+  font-family: yekan;
+  font-weight: 400px;
+}
+.amazing .text .timetitle a {
+  display: inline-block;
+  box-sizing: border-box;
+  text-align: left;
+  font-family: yekan;
+  color: #27af6e;
+  font-size: 24px;
+  text-decoration: unset;
+  margin-right: 700px;
+  margin-top: -10px;
+}
+.amazing .text .timetitle .timer1,
+.timer2,
+.timer3 {
+  width: 50px;
+  height: 45px;
+  background-color: #f16423;
+  border-radius: 7px;
+  display: inline-block;
+  vertical-align: top;
+  box-sizing: border-box;
+  margin-top: -5px;
+  line-height: 45px;
+  text-align: center;
+  font-size: 20px;
+}
+span .timer1,
+.timer2,
+.timer3 {
+  background-color: #f16423;
+  width: 50px;
+  display: inline-block;
+  line-height: 45px;
+  font-weight: 400px;
+  box-sizing: border-box;
+  text-align: center;
+  font-size: 20px;
+}

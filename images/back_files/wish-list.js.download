@@ -1,0 +1,761 @@
+let clone_modal = "";
+function showPdpProduct(el) {
+  $("body #wish-list").show(100);
+  let productID = $(el.currentTarget).attr("data-product-id");
+  let idColor = $(el.currentTarget).attr("data-color");
+  if (clone_modal === "") {
+    clone_modal = $("#quick-view-box").clone();
+  }
+  $("#quick-view-container").empty();
+  axios
+    .get(baseUriAPI + baseAPIV1 + "products/" + productID)
+    .then((response) => {
+      quickView(response.data.data, idColor);
+    });
+}
+function quickView(itemColor, selectedColor) {
+  $("#quick-view-container").html(clone_modal);
+  $("#quick-view-container").modal("show");
+  var activeColor = itemColor.data
+    .map((color) => color.color_value + "")
+    .indexOf(selectedColor);
+  // _____product gallery
+  $.fn.digits = function () {
+    return this.each(function () {
+      $(this).text(
+        $(this)
+          .text()
+          .replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,")
+      );
+    });
+  };
+
+  //fill size chart
+  var tableRow = "";
+
+  function sizeGideRow(row, index) {
+    if (index === 0) {
+      tableRow += '<thead class="thead-dark"><tr>';
+      row.map(function (cell) {
+        tableRow += "<th>" + cell + "</th>";
+      });
+      tableRow += "</tr></thead>";
+    } else {
+      tableRow += "<tr>";
+      row.map(function (cell) {
+        tableRow += "<td>" + cell + "</td>";
+      });
+      tableRow += "</tr>";
+    }
+
+    return tableRow;
+  }
+  if (itemColor.data[activeColor].product_size_guide) {
+    itemColor.data[activeColor].product_size_guide.map(sizeGideRow);
+    $("#quick-view-size-guide-data").html(tableRow);
+  } else {
+    $("#size-guid-btn").css("display", "none");
+    $(".bani-select-box").css("width", "100%");
+  }
+
+  //size guide show & hide
+  $("#size-guid-btn").click(function () {
+    $("#quick-view-size-guide").css("zIndex", "99999");
+    $("#quick-view-size-guide").animate({ opacity: 1 });
+  });
+  $("#quick-view-size-guide-header .font-icon").click(function () {
+    $("#quick-view-size-guide").animate({ opacity: 0 }, 100);
+    $("#quick-view-size-guide").css("zIndex", "-1");
+  });
+
+  // check for available or notavailable
+  var checkAvailable = 0;
+  //add to cart
+  $(".product-add-to-cart-pdp.product-is-available").click(function () {
+    if ($("#selectSize-fast option:selected").attr("value") == "unset") {
+      $("#selectSize-fast").addClass("error");
+      //$(this).attr("data-target", "")
+      $(this).children(".tooltip-box").fadeIn();
+    } else {
+      var selectedSize = $("#selectSize-fast option:selected").attr(
+        "idproductattribute"
+      );
+      //add to cart
+      function addToCart(attrId) {
+        let token = window.customer.token;
+        $("#quick-view-container").modal("hide");
+        $("body").LoadingOverlay("show", {
+          background: "rgba(0, 0, 0, 0.5)",
+          image: baseUri + tplUri + "assets/images/spinner-loading.svg",
+        });
+        return axios({
+          method: "post",
+          url: baseUriAPI + baseAPIV1 + "cart",
+          data: {
+            attribute_id: attrId,
+            count: 1,
+          },
+          headers: {
+            Authorization: `Bearer ` + token,
+          },
+        });
+      }
+      addToCart(selectedSize)
+        .then(function (response) {
+          if (response.data.status === "success") {
+            $("body").LoadingOverlay("hide");
+            $("#product-add-to-basket").modal("show");
+            $("#product-add-to-basket .unsuccess").css({ display: "none" });
+            $("#product-add-to-basket .success").show();
+            $("#product-add-to-basket .success p").text(response.data.message);
+            getMiniCart();
+          } else if (response.data.status === "error") {
+            $("body").LoadingOverlay("hide");
+            $("#product-add-to-basket").modal("show");
+            $("#product-add-to-basket .unsuccess").show();
+            $("#product-add-to-basket .success").css({ display: "none" });
+            $("#product-add-to-basket .unsuccess p").text(
+              response.data.message
+            );
+          } else if (result.status_code === 401 || result.status_code === 403) {
+            checkCustomerToken();
+          }
+        })
+        .catch(function (response) {});
+    }
+  });
+
+  // create product color list
+  function productColorsFunc(item, index) {
+    if (item.promotion_label) {
+      $(".tag-gallery-fast").text(item.promotion_label.title).css({
+        "background-color": item.promotion_label.background_color,
+        color: item.promotion_label.text_color,
+      });
+    }
+    var createColors = "";
+    if (item.total_qty === 0)
+      createColors =
+        "<div class='item'><label class='unavailable'><input type='radio' rel=" +
+        index +
+        " colorName=" +
+        item.color_name +
+        " name='productColor'><img src=" +
+        item.images.small_default[0] +
+        "><span class='overlay'></span></input><p>" +
+        item.color_name +
+        "</p></label></div>";
+    else
+      createColors =
+        "<div class='item'><label><input type='radio' rel=" +
+        index +
+        " colorName=" +
+        item.color_name +
+        " name='productColor'><img src=" +
+        item.images.small_default[0] +
+        "><span class='overlay'></span></input><p>" +
+        item.color_name +
+        "</p></label></div>";
+
+    return createColors;
+  }
+  $("#pdpProductColorListFast")
+    .empty()
+    .append(itemColor.data.map(productColorsFunc));
+
+  // active first color defultly
+  setTimeout(function () {
+    $(
+      "#pdpProductColorListFast .owl-item:nth-child(" +
+        (activeColor + 1) +
+        ") label"
+    ).addClass("active");
+    $(
+      "#pdpProductColorListFast .owl-item:nth-child(" +
+        (activeColor + 1) +
+        ") input"
+    ).attr("checked", true);
+  }, 700);
+
+  // owl dots fade in of bottom after 1 second.
+  setTimeout(function () {
+    $(
+      ".owl-carousel.color-list .owl-nav, .owl-carousel.color-list .owl-dots"
+    ).css({ opacity: "1", top: "-35px" });
+  }, 1000);
+
+  // if colors will be fewer than 7 those dots will be hide.
+  setTimeout(function () {
+    if (itemColor.data.length <= 7) {
+      $(
+        ".owl-carousel.color-list .owl-nav, .owl-carousel.color-list .owl-dots"
+      ).hide();
+    }
+  }, 900);
+
+  // define rel for mapping galleries.
+  var rel = $("#pdpProductColorListFast input").attr("rel");
+
+  function productGalleryFunc(item) {
+    var createGallery = "";
+    createGallery =
+      "<div class='item'><img src=" +
+      item +
+      "><span class='overlay'></span></div>";
+    return createGallery;
+  }
+
+  function productIdicatorsFunc(item) {
+    var createGallery = "";
+    createGallery =
+      "<button class='owl-dot active' role='button'><img src=" +
+      item +
+      "></div>";
+    return createGallery;
+  }
+  $(".gallery-container .pdp-gallery-fast")
+    .empty()
+    .append(
+      itemColor.data[activeColor].images.large_default.map(productGalleryFunc)
+    );
+  $(".gallery-container .gallery-dots-fast")
+    .empty()
+    .append(
+      itemColor.data[activeColor].images.small_default.map(productIdicatorsFunc)
+    );
+
+  // product indicators gallery creator
+  function colorSizes(item) {
+    var createSizes = "";
+    if (item.quantity != undefined && item.quantity == 0)
+      createSizes =
+        "<option class='size-option' value=" +
+        item.name +
+        " available='false' disabled='true'>" +
+        item.name +
+        "</option>";
+    else if (itemColor.data[activeColor].size.length === 1)
+      createSizes =
+        "<option class='size-option' selected idProductAttribute=" +
+        item.id_product_attribute +
+        " available='true' value=" +
+        item.name +
+        " disabled='false' >" +
+        item.name +
+        "</option>";
+    else
+      createSizes =
+        "<option class='size-option' idProductAttribute=" +
+        item.id_product_attribute +
+        " available='true' value=" +
+        item.name +
+        " disabled='false' >" +
+        item.name +
+        "</option>";
+    return createSizes;
+  }
+
+  $("#selectSize-fast")
+    .empty()
+    .append(
+      "<option class='defult' selected value='unset'> انتخاب سایز</option>" +
+        itemColor.data[activeColor].size
+          .map(colorSizes)
+          .toString()
+          .replace(/,/g, "")
+    );
+
+  //customize select options
+  function customSelect() {
+    var x, i, j, l, ll, selElmnt, a, b, c;
+    /*look for any elements with the class "bani-select-box":*/
+    x = document.getElementsByClassName("bani-select-box");
+    l = x.length;
+    for (i = 0; i < l; i++) {
+      selElmnt = x[i].getElementsByTagName("select")[0];
+      ll = selElmnt.length;
+      /*for each element, create a new DIV that will act as the selected item:*/
+      a = document.createElement("DIV");
+      a.setAttribute("class", "select-selected");
+      a.innerHTML = selElmnt.options[selElmnt.selectedIndex].innerHTML;
+      x[i].appendChild(a);
+      /*for each element, create a new DIV that will contain the option list:*/
+      b = document.createElement("DIV");
+      b.setAttribute("class", "select-items select-hide");
+
+      for (j = 1; j < ll; j++) {
+        /*for each option in the original select element,
+                    create a new DIV that will act as an option item:*/
+        c = document.createElement("DIV");
+        c.innerHTML = selElmnt.options[j].innerHTML;
+
+        c.addEventListener("click", function (e) {
+          /*when an item is clicked, update the original select box,
+                        and the selected item:*/
+          var y, i, k, s, h, sl, yl;
+          s = this.parentNode.parentNode.getElementsByTagName("select")[0];
+          sl = s.length;
+          h = this.parentNode.previousSibling;
+
+          for (i = 0; i < sl; i++) {
+            if (s.options[i].innerHTML == this.innerHTML) {
+              s.selectedIndex = i;
+              h.innerHTML = this.innerHTML;
+              y = this.parentNode.getElementsByClassName("same-as-selected");
+              yl = y.length;
+              for (k = 0; k < yl; k++) {
+                y[k].removeAttribute("class");
+              }
+              this.setAttribute("class", "same-as-selected");
+              break;
+            }
+          }
+          h.click();
+        });
+        b.appendChild(c);
+      }
+      x[i].appendChild(b);
+      a.addEventListener("click", function (e) {
+        /*when the select box is clicked, close any other select boxes,
+                    and open/close the current select box:*/
+        e.stopPropagation();
+        closeAllSelect(this);
+        this.nextSibling.classList.toggle("select-hide");
+        // $(this).next().fadeToggle(200);
+        this.classList.toggle("select-arrow-active");
+      });
+    }
+
+    function closeAllSelect(elmnt) {
+      /*a function that will close all select boxes in the document,
+                except the current select box:*/
+      var x,
+        y,
+        i,
+        xl,
+        yl,
+        arrNo = [];
+      x = document.getElementsByClassName("select-items");
+      y = document.getElementsByClassName("select-selected");
+      xl = x.length;
+      yl = y.length;
+      for (i = 0; i < yl; i++) {
+        if (elmnt == y[i]) {
+          arrNo.push(i);
+        } else {
+          y[i].classList.remove("select-arrow-active");
+        }
+      }
+      for (i = 0; i < xl; i++) {
+        if (arrNo.indexOf(i)) {
+          x[i].classList.add("select-hide");
+          // x[i].fadeOut(200);
+        }
+      }
+    }
+
+    /*if the user clicks anywhere outside the select box,
+            then close all select boxes:*/
+    document.addEventListener("click", closeAllSelect);
+
+    for (var i = 1; i < $(".bani-select-box select option").length; i++) {
+      if (
+        $(".bani-select-box select option:nth-child(" + (i + 1) + ")").attr(
+          "available"
+        ) === "false"
+      ) {
+        $(".select-items div:nth-child(" + i + ")").after(
+          "<div class='disabled'>" +
+            $(".bani-select-box select option:nth-child(" + (i + 1) + ")").attr(
+              "value"
+            ) +
+            "</div>"
+        );
+        $(".select-items div:nth-child(" + i + ")").remove();
+      }
+    }
+  }
+  $(".select-selected, .select-items").remove();
+  customSelect();
+
+  //color name
+  $("#PColorName").text(
+    "( " + $("#pdpProductColorListFast label:first input").attr("colorName") + " )"
+  );
+
+  // ___ handling available or notavailable product design
+
+  for (var i = 0; i < itemColor.data[activeColor].size.length; i++) {
+    checkAvailable =
+      checkAvailable + itemColor.data[activeColor].size[i].quantity;
+  }
+
+  if (checkAvailable === 0) {
+    $(".not-available-pdp").fadeIn();
+    $(".product-is-available").hide();
+  } else {
+    $(".not-available-pdp").hide();
+    $(".product-is-available").fadeIn();
+  }
+
+  // if (productData.in_flash_sales && checkAvailable !== 0)
+  //     $(".product-countdown-timer").show()
+  // else
+  //     $(".product-countdown-timer").hide()
+
+  $(".show-pdp").attr("href", "/" + itemColor.data[activeColor].link);
+  $("#pdpProductColorListFast input").click(function () {
+    var rel = $(this).attr("rel");
+    // checkAvailable will be 0
+    var checkAvailable = 0;
+    $(this).attr("checked", true);
+    $(".show-pdp").attr("href", "/" + itemColor.data[rel].link);
+    $("#pdpProductColorListFast label").removeClass("active");
+    if ($("#pdpProductColorListFast input").attr("checked") === "checked") {
+      $(this).parent("label").addClass("active");
+    } else {
+      $(this).parent("label").removeClass("active");
+    }
+
+    $("#PColorName").text("( " + $(this).attr("colorName") + " )");
+
+    $(this).addClass("active");
+    $(
+      ".gallery-container .pdp-gallery-fast .owl-stage, .gallery-container .gallery-dots-fast"
+    ).empty();
+
+    // product images gallery creator
+    /* function productGalleryFunc(item) {
+                var createGallery = "<div class='item'><img src=" + item + " alt='' ><span class='overlay'></span></div>"
+                return createGallery
+            } */
+    // replacing new images
+    var newColors = "";
+    newColors =
+      itemColor.data[rel].images.thickbox_default.map(productGalleryFunc);
+    $(".owl-carousel.pdp-gallery-fast")
+      .trigger("replace.owl.carousel", newColors.toString())
+      .trigger("refresh.owl.carousel");
+
+    // product indicators gallery creator
+    /* function productIdicatorsFunc(item) {
+                var createGallery = "<button class='owl-dot' role='button'><img src=" + item + "></button>"
+                return createGallery
+            } */
+
+    /* $(".gallery-container .pdp-gallery-fast .owl-stage").append(itemColor.data[rel].images.large_default.map(productGalleryFunc)) 
+            $(".gallery-container .gallery-dots-fast").append(itemColor.data[rel].images.large_default.map(productIdicatorsFunc))*/
+
+    // createing new indicators
+    for (
+      var i = 0;
+      i <= itemColor.data[rel].images.thickbox_default.length;
+      i++
+    ) {
+      $(".gallery-dots-fast .owl-dot:nth-child(" + (i + 1) + ")")
+        .empty()
+        .append(
+          "<img src=" +
+            itemColor.data[rel].images.thickbox_default[i] +
+            " alt=''>"
+        );
+    }
+    $(".gallery-container .gallery-dots-fast button:first").addClass("active");
+
+    $(".owl-carousel.pdp-gallery-fast").trigger("refresh.owl.carousel");
+
+    // product indicators gallery creator
+    function colorSizes(item) {
+      var createSizes = "";
+
+      if (item.quantity === 0)
+        createSizes =
+          "<option class='size-option' value=" +
+          item.name +
+          " available='false' disabled='true'>" +
+          item.name +
+          "</option>";
+      else if (itemColor.data[rel].size.length === 1)
+        createSizes =
+          "<option class='size-option' selected idProductAttribute=" +
+          item.id_product_attribute +
+          " available='true' value=" +
+          item.name +
+          " disabled='false' >" +
+          item.name +
+          "</option>";
+      else
+        createSizes =
+          "<option class='size-option' idProductAttribute=" +
+          item.id_product_attribute +
+          " available='true' value=" +
+          item.name +
+          " disabled='false' >" +
+          item.name +
+          "</option>";
+      return createSizes;
+    }
+
+    $("#selectSize-fast")
+      .empty()
+      .append(
+        "<option class='defult' value='unset'> انتخاب سایز</option>" +
+          itemColor.data[rel].size.map(colorSizes).toString().replace(/,/g, "")
+      );
+
+    $(".select-selected, .select-items").remove();
+    customSelect();
+
+    // ___ handling available or notavailable product desig
+    for (var i = 0; i < itemColor.data[rel].size.length; i++) {
+      checkAvailable = checkAvailable + itemColor.data[rel].size[i].quantity;
+    }
+    if (checkAvailable === 0) {
+      $(".not-available-pdp").fadeIn();
+      $(".product-is-available").hide();
+      $(".product-available-price-pdp").hide();
+    } else {
+      $(".not-available-pdp").hide();
+      $(".product-is-available").fadeIn();
+      $(".product-available-price-pdp").fadeIn();
+    }
+
+    // if (productData.in_flash_sales && checkAvailable !== 0)
+    //     $(".product-countdown-timer").show()
+    // else
+    //     $(".product-countdown-timer").hide()
+  });
+
+  // product information
+  $(".product-summary-section-fast .product-brand").text(
+    itemColor.data[0].product_manufacturer_en_name
+  );
+  $(".product-summary-section-fast .product-title").text(
+    itemColor.data[0].product_name
+  );
+  if (itemColor.data[0].product_specific_price !== null) {
+    $(".product-summary-section-fast .old-price")
+      .text(itemColor.data[0].product_price + " تومان")
+      .digits();
+    $(".product-summary-section-fast .discount-value span")
+      .text(itemColor.data[0].product_specific_price.discount_amount + " تومان")
+      .digits();
+    $(".product-summary-section-fast .price-value span:first")
+      .text(itemColor.data[0].product_specific_price.specific_price + " تومان")
+      .digits();
+    $(".product-summary-container .discount-gallery-fast").text(
+      itemColor.data[0].product_specific_price.discount_percent + "%"
+    );
+  } else {
+    $(
+      ".product-summary-section-fast .old-price ,.product-summary-section-fast .discount-value,.product-summary-container .discount-gallery-fast"
+    ).css("display", "none");
+    $(".product-summary-section-fast .price-value span:first")
+      .text(itemColor.data[0].product_price + " تومان")
+      .digits();
+  }
+
+  // __________ timer
+  function progress(timeleft, timetotal, $element) {
+    var progressBarWidth = (timeleft * $element.width()) / timetotal;
+    $element.find("div").animate({ width: progressBarWidth }, 500);
+    if (timeleft > 0) {
+      setTimeout(function () {
+        progress(timeleft - 1, timetotal, $element);
+      }, 1000);
+    }
+  }
+  progress(1596056325000, 1596056325000, $("#timeProgress"));
+
+  //___check for size is selected
+  $(".product-add-to-cart-pdp").mouseover(function () {
+    if ($("#selectSize-fast option:selected").attr("value") == "unset") {
+      $(this).css("cursor", "no-drop");
+      // $(this).children(".tooltip-box").show()
+    } else {
+      $(this).css("cursor", "pointer");
+      // $(this).children(".tooltip-box").fadeOut()
+    }
+  });
+  $("#selectSize-fast").click(function () {
+    $(this).removeClass("error");
+    $(this).children(".tooltip-box").fadeOut();
+  });
+  $(".product-add-to-cart-pdp").mouseout(function () {
+    $(this).children(".tooltip-box").fadeOut();
+  });
+  $("#selectSize-fast").click(function () {
+    $(this).removeClass("error");
+    $(this).children(".tooltip-box").fadeOut();
+  });
+
+  // ___ show sucsessfully message for adding to cart
+  $(".product-add-to-cart-pdp").click(function () {
+    if ($("#selectSize-fast option:selected").attr("value") == "unset") {
+      $("#selectSize-fast").addClass("error");
+      $(this).attr("data-target", "");
+      $(this).children(".tooltip-box").fadeIn();
+    } else {
+      $("#selectSize-fast").removeClass("error");
+      $(this).attr("data-target", "#addToCart");
+      $(this).children(".tooltip-box").fadeOut();
+    }
+  });
+  // remove error when click everywhere exept add to cart button.
+  $(document).click(function (e) {
+    if (
+      !$(e.target).is(".product-add-to-cart-pdp") &&
+      !$(e.target).is(".product-add-to-cart-pdp *")
+    ) {
+      $("#selectSize-fast").removeClass("error");
+    }
+  });
+
+  // show error when form is empty in product comment
+  var commentTitle = $("input[name='addComment']");
+  var commentdescription = $("textarea[name='addComment']");
+  $("#addComment").click(function () {
+    if (commentTitle.val() == 0 && commentdescription.val() == 0) {
+      commentTitle.addClass("error");
+      commentdescription.addClass("error");
+    } else if (commentdescription.val() == 0) {
+      commentdescription.addClass("error");
+    } else if (commentTitle.val() == 0) {
+      commentTitle.addClass("error");
+    }
+  });
+  $("input[name='addComment'], textarea[name='addComment']").focus(function () {
+    commentTitle.removeClass("error");
+    commentdescription.removeClass("error");
+  });
+  $("#pdpColorListNavs").html("");
+  $(".owl-carousel.pdp-gallery-fast").owlCarousel({
+    rtl: true,
+    items: 1,
+    nav: true,
+    dots: true,
+    dotsContainer: ".gallery-dots-fast",
+  });
+
+  $(".owl-carousel.color-list").owlCarousel({
+    rtl: true,
+    items: 4,
+    margin: 10,
+    nav: true,
+    dots: true,
+    startPosition: activeColor,
+    dotsContainer: "#pdpColorListDots",
+    navContainer: "#pdpColorListNavs",
+  });
+}
+$(document).ready(function () {
+  // add to basket
+  var productId;
+  $(document).on("click", ".product-card-addToBasket", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    var selectedSize = [];
+    var compeleteSize = "<option>انتخاب کنید</option>";
+
+    productId = $(this).closest(".product-card").attr("data-id");
+
+    $("#wish-list-select-size").attr("data-id-modal", productId);
+    $(this)
+      .parents(".product-card")
+      .find(".product-card-size li.has-size")
+      .each(function () {
+        selectedSize.push($(this).attr("data-attr"));
+      });
+    compeleteSize += selectedSize
+      .map(function (size) {
+        let sizeAttr = size.split(",");
+        return "<option value=" + sizeAttr[0] + ">" + sizeAttr[1] + "</option>";
+      })
+      .join("");
+
+    $("#wish-list-select-size select").empty().append(compeleteSize);
+
+    $("#wish-list-select-size").modal("show");
+  });
+
+  //remove select size error
+  $("#wish-list-select-size select").click(function () {
+    $(this).removeClass("error");
+    $("span.error").hide();
+  });
+
+  //start check login
+  var token = window.customer.token;
+  var selectedProduct;
+
+  //show added modal
+  $("#wish-list-select-size .btn-green").on("click", function (e) {
+    e.preventDefault();
+    if ($("#wish-list-select-size select").val() == "انتخاب کنید") {
+      $("#wish-list-select-size select").addClass("error");
+      $("span.error").show();
+    } else {
+      $("#wish-list-select-size").modal("hide");
+      addToCart(selectedProduct)
+        .then(function (response) {
+          if (response.data.status === "success") {
+            $("body #wish-list").LoadingOverlay("hide");
+            $("#product-add-to-basket").modal("show");
+            $("#product-add-to-basket .unsuccess").css({ display: "none" });
+            $("#product-add-to-basket .success").show();
+            $("#product-add-to-basket .success p").text(response.data.message);
+            getMiniCart();
+          } else if (response.data.status === "error") {
+            $("body #wish-list").LoadingOverlay("hide");
+            $("#product-add-to-basket").modal("show");
+            $("#product-add-to-basket .unsuccess").show();
+            $("#product-add-to-basket .success").css({ display: "none" });
+            $("#product-add-to-basket .unsuccess p").text(
+              response.data.message
+            );
+          } else if (result.status_code === 401 || result.status_code === 403) {
+            checkCustomerToken();
+          }
+        })
+        .catch(function (response) {});
+    }
+  });
+  $("#wish-list-select-size select").change(function () {
+    selectedProduct = $(this).val();
+  });
+
+  var token = window.customer.token;
+  // open rmove modal from wishlist
+  $(document).on("click", ".product-card-dislike", function (e) {
+    var productId = $(this).closest(".product-card").attr("data-id");
+    $("#removeFromWishlist").attr("data-product-id", productId);
+    $("#removeFromWishlist").modal("show");
+  });
+
+  // show quick veiw
+  $(document).on("click", "#show-pdp-product", (event) =>
+    showPdpProduct(event)
+  );
+
+  var removeFromWishlist = `
+        <div class="modal fade remove-cart-item" id="removeFromWishlist" data-product-id="">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <button class="close" data-dismiss="modal" type="button">
+                        <span class="font-icon icon-cancel"></span>
+                    </button>
+                    <div class="modal-body">
+                        <p>حذف کالا</p>
+                        <p>آیا از حذف این کالا مطمئنی؟</p>
+                        <div class="btn-box">
+                            <button class="white remove" type="button" data-dismiss="modal">حذف</button>
+                            <button class="white cancel-modal">انصراف </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+  $("#wish-list").append(removeFromWishlist);
+});

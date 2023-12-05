@@ -1,0 +1,321 @@
+$(document).ready(function() {
+
+
+    $.each($('.ProductsCarousel, .StyleWeek'), function(index, value) {
+        component = $(value);
+        api = component.data('api');
+        if (api) {
+            $.ajax({
+                dataType: 'json',
+                url: baseUriAPI + baseAPIV1 + api,
+                success: function(data) {
+                    component = $(value);
+                    $.each(data.data, function(index_1, value_1) {
+                        if (index_1 == 'data') {
+                            $.each(value_1, function(index_2, value_2) {
+                                component.find('.owl-product .owl-carousel').append(product_card(index_2, value_2));
+                            });
+                        }
+                    });
+                    var owlProduct = component.find('.owl-product .owl-carousel');
+                    owlProduct.owlCarousel({
+                        rtl: true,
+                        margin: 30,
+                        dots: false,
+                        loop: true,
+                        autoplay: true,
+                        responsive: {
+                            0: {
+                                items: 3
+                            },
+                            1170: {
+                                items: 4
+                            }
+
+                        }
+                    });
+                    component.find('.owl-product .owl-prev').click(function() {
+                        owlProduct.trigger('next.owl.carousel');
+                    });
+                    component.find('.owl-product .owl-next').click(function() {
+                        owlProduct.trigger('prev.owl.carousel', [300]);
+                    });
+                }
+            });
+        }
+    });
+
+    $.each($('.NewestBrandsCarousel'), function(index, value) {
+        component = $(value);
+        api = component.data('api');
+        if (api) {
+            $.ajax({
+                dataType: 'json',
+                url: baseUriAPI + baseAPIV1 + api,
+                success: function(data) {
+                    component = $(value);
+                    $.each(data.data, function(index1, value1) {
+                        box = '';
+                        box += '<div class="item">';
+                        box += '<a href="' + value1.link + '" target="_blank">';
+                        box += '<img src="' + value1.image + '" alt="' + value1.title + '" title="' + value1.title + '">';
+                        box += '</a>';
+                        box += '</div>';
+                        component.find('.owl-halfSlider .owl-carousel').append(box);
+                    });
+                    var owlHalfSlider = component.find('.owl-halfSlider .owl-carousel');
+                    owlHalfSlider.owlCarousel({
+                        rtl: true,
+                        margin: 50,
+                        dots: false,
+                        loop: true,
+                        responsive: {
+                            0: {
+                                items: 2
+                            }
+                        }
+                    });
+                    component.find('.owl-halfSlider .owl-prev').click(function() {
+                        owlHalfSlider.trigger('next.owl.carousel');
+                    });
+                    component.find('.owl-halfSlider .owl-next').click(function() {
+                        owlHalfSlider.trigger('prev.owl.carousel', [300]);
+                    });
+                }
+            });
+        }
+    });
+
+    $.each($('.TopBrands'), function(index2, value2) {
+        component = $(value2);
+        api = component.data('api');
+        if (api) {
+            $.ajax({
+                dataType: 'json',
+                url: baseUriAPI + baseAPIV1 + api,
+                success: function(response) {
+                    component = $(value2);
+                    $.each(response.data.slice(0, 50), function(index3, value3) {
+                        box = '';
+                        box += '<div class="item">';
+                        box += '<a href="' + baseUri + 'Brand/' + value3.brand_id + '/' + value3.slug + '" target="_blank">';
+                        box += '<img src="' + value3.logo + '" alt="' + value3.name + '" title="' + value3.name + '">';
+                        box += '</a>';
+                        box += '</li>';
+                        component.find('.owl-brandSlider  .owl-carousel').append(box);
+                    });
+                    //owl mode-suggest
+                    var owlBrand = component.find('.owl-brandSlider  .owl-carousel');
+                    owlBrand.owlCarousel({
+                        rtl: true,
+                        margin: 40,
+                        dots: false,
+                        loop: true,
+                        autoplay: true,
+                        responsive: {
+                            0: {
+                                items: 1
+                            },
+                            768: {
+                                items: 3
+                            },
+                            992: {
+                                items: 6
+                            },
+                            1170: {
+                                items: 8
+                            }
+                        }
+                    });
+                    component.find('.owl-brandSlider .owl-prev').click(function() {
+                        owlBrand.trigger('next.owl.carousel');
+                    });
+                    component.find('.owl-brandSlider .owl-next ').click(function() {
+                        owlBrand.trigger('prev.owl.carousel', [300]);
+                    });
+                }
+            });
+        }
+    });
+
+    $.each($('.BaniBlog'), function(index, value) {
+        component = $(value);
+        api = component.data('api');
+        if (api) {
+            $.ajax({
+                dataType: 'json',
+                url: baseUriAPI + baseAPIV1 + api,
+                success: function(response) {
+                    component = $(value);
+                    $.each(response.data, function(index1, value1) {
+                        box = '';
+                        box += '<div class="item">';
+                        box += '<a href="' + value1.link + '" target="_blank">';
+                        box += '<img src="' + value1.image + '" alt="' + value1.title + '" title="' + value1.title + '">';
+                        box += '</a>';
+                        box += '<p>';
+                        box += '<a href="' + value1.link + '">' + value1.title + '</a>';
+                        box += '</p>';
+                        box += '</div>';
+                        component.find('.owl-mode-suggest  .owl-carousel').append(box);
+                    });
+                    //owl mode-suggest
+                    var owlMode = component.find('.owl-mode-suggest  .owl-carousel');
+                    owlMode.owlCarousel({
+                        rtl: true,
+                        margin: 30,
+                        dots: false,
+                        loop: true,
+                        responsive: {
+                            0: {
+                                items: 1
+                            },
+                            768: {
+                                items: 2
+                            },
+                            992: {
+                                items: 3
+                            },
+                            1170: {
+                                items: 4
+                            }
+                        }
+                    });
+                    component.find('.owl-mode-suggest .owl-prev ').click(function() {
+                        owlMode.trigger('next.owl.carousel');
+                    });
+                    component.find('.owl-mode-suggest .owl-next').click(function() {
+                        owlMode.trigger('prev.owl.carousel', [300]);
+                    });
+                }
+            });
+        }
+    });
+
+
+
+    function product_card(index, value) {
+
+        product_specific_price = false;
+        if (value['product_specific_price']) {
+            product_specific_price = true;
+        }
+        $cssClass = 'product-card-like';
+        if (window.customer.user && (window.customer.type === 'signin' || window.customer.type === 'signup')) {
+            var wishList = window.customer.user.wishlist;
+            if (wishList.indexOf(value['id_product_attribute']) !== -1) {
+                $cssClass = 'product-card-like active'
+            }
+        }
+        card = '';
+        card += '<div class="item">';
+        if (value['total_qty'] > 0) {
+            card += '<div class="product-card">';
+        } else {
+            card += '<div class="product-card product-card-not-exist">';
+        }
+
+
+        card += '<a href="' + baseUri + value['color_link_new'] + '" class="product-card-img-link">';
+        card += '<img src="' + value['images']['large_default']['0'] + '" alt="' + value['product_name'] + '" title="' + value['product_name'] + '" class="product-card-img hover-hide">';
+        if (value['images']['large_default']['1']) {
+            card += '<img src="' + value['images']['large_default']['1'] + '" alt="' + value['product_name'] + '" title="' + value['product_name'] + '" class="product-card-img hover-show">';
+        } else {
+            card += '<img src="' + value['images']['large_default']['0'] + '" alt="' + value['product_name'] + '" title="' + value['product_name'] + '" class="product-card-img hover-show">';
+        }
+        card += '<span class="product-card-over-img"></span>';
+        if (product_specific_price) {
+            card += '<span class="product-card-discount">%' + value['product_specific_price']['discount_percent'] + '</span>';
+        }
+
+        if (value['promotion_label']) {
+            card += '<div class="product-card-size-tag-box"><span class="product-card-size-tag" style=' + "background-color:" + value['promotion_label']['background_color'] + ";color:" + value['promotion_label']['text_color'] + '>' + value['promotion_label']['title'] + '</span></div>';
+        }
+        card += '</a>';
+        card += '<div class="product-card-hover">';
+        card += '<ul class="product-card-hover-icon">';
+        card += '<li class="' + $cssClass + '" data-product-id="' + value['id_product_attribute'] + '"><span class="font-icon icon-fav-profile"></span></li>';
+        card += '<li class="product-card-detail" onclick="showPdpProduct(event)" data-product-id="' + value['id_product'] + '" data-color="' + value['color_value'] + '"><span class="font-icon icon-active-display-pass"></span></li>';
+        card += '</ul>';
+
+        if (value['all_colors'].length > 1) {
+            number_colors = 5;
+            card += '<ul class="product-card-color">';
+            $.each(value['all_colors'].slice(0, number_colors), function(index_1, value_1) {
+                if (index_1 == 0) {
+                    card += '<li class="active">';
+                } else {
+                    card += '<li>';
+                }
+                $.each(value_1['image'], function(index_2, value_2) {
+                    if (index_2 == 0) {
+                        $.each(value_2, function(index_3, value_3) {
+                            if (index_3 == 'image_size') {
+                                // card += '<a href="'+"/"+value.link.substring(0, value.link.lastIndexOf("/") + 1)+'رنگ-'+value_1['name']+'"><img src="' + value_3['cart_default'] + '"  alt="' + value_2['alt'] + '"  title="' + value_2['title'] + '" ></a>';
+                                card += '<a href="' + "/BM-" + value.id_product + "/" + value.product_name.replace(/ /g, "-") + "/" + value_1['id'] + ".html#/" + "رنگ-" + value_1.name + '"><img src="' + value_3['cart_default'] + '"  alt="' + value_2['alt'] + '"  title="' + value_2['title'] + '" ></a>';
+                            }
+                        });
+                    }
+                });
+                card += '</li>';
+            });
+            if (value['all_colors'].length > number_colors) {
+                card += '<li class="product-card-count">+' + (value['all_colors'].length - number_colors) + '</li>';
+            }
+            card += '</ul>';
+        }
+        card += '</div>';
+
+
+        card += '<p>';
+        card += '<a href="' + baseUri + value['color_link_new'] + '" class="product-card-brand-lastprice">';
+        card += '<span class="product-card-brand">' + value['product_manufacturer_en_name'] + '</span>';
+        if (product_specific_price && value['total_qty'] > 0) {
+            card += '<span class="product-card-lastprice">' + value['product_price'].toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,") + ' تومان</span>';
+        }
+        card += '</a>';
+        card += '</p>';
+
+        card += '<div class="product-card-name-price">';
+        card += '<h3 class="product-card-name"><a href="' + value['color_link_new'] + '">' + value['product_name'] + '</a></h3>';
+        if (product_specific_price && value['total_qty'] > 0) {
+            card += '<span class="product-card-price">' + value['product_specific_price']['specific_price'].toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,") + ' تومان</span>';
+        } else if (value['total_qty'] > 0) {
+            card += '<span class="product-card-price">' + value['product_price'].toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,") + ' تومان</span>';
+        } else if (value['total_qty'] == 0) {
+            card += '<span class="product-card-not-exist-text"> ناموجود</span>'
+        }
+
+        card += '</div>';
+        var sizeQuantity = value['size'].filter(size => {
+            if (size.quantity > 0) {
+                return size
+            }
+        })
+        if (sizeQuantity) {
+            number_size = 3;
+            card += '<ul class="product-card-size">';
+            $.each(sizeQuantity.slice(0, number_size), function(index_1, value_1) {
+                card += '<li><a href="/' + value['color_link_new'] + '/سایز-' + value_1['name'] + '">' + value_1['name'] + '</a></li>';
+            });
+            if (sizeQuantity.length > number_size) {
+                card += '<li class="product-card-more-size"><a href="/' + value['color_link_new'] + '">' + (sizeQuantity.length - number_size) + '+</a></li>';
+            }
+            card += '</ul>';
+        }
+
+        if (value['total_qty'] > 0 && value.banijet_tag && value.banijet_tag.title && value.banijet_tag.icon) {
+            card += `
+            <div class="banijet-label-pdp-card">
+                <img src="${value.banijet_tag.icon}">
+                <span>${value.banijet_tag.title}</span>
+            </div>`
+        }
+
+        card += '</div>';
+        card += '</div>';
+
+        return card;
+    }
+
+});

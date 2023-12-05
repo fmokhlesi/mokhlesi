@@ -1,0 +1,39 @@
+.parent .containe {
+  width: 1300px;
+  height: 240px;
+
+}
+.parent .containe .row {
+  width: 1300px;
+  height: 220px;
+}
+.parent .containe .row .col {
+  width: 300px;
+  height: inherit;
+  display: inline-block;
+  box-sizing: border-box;
+  padding-right: 60px;
+
+}
+
+.parent .containe .row .col a.a {
+  width: 235px;
+  height: inherit;
+  display: inline-block;
+  box-sizing: border-box;
+}
+
+.parent .containe .row .col img {
+  width: 297px;
+  height: inherit;
+  display: inline-block;
+  object-fit: cover;
+  transition: 400ms;
+  border-radius: 20px;
+  background-color: red;
+}
+.parent .containe .row .col:hover img {
+  width: 249px;
+  height: 219px;
+  box-shadow: 4px 4px 14px gray;
+}

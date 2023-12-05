@@ -1,0 +1,763 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+.parenta {
+  width: 100%;
+  height: 5000px;
+}
+.parenta .buyprice {
+  width: 1247px;
+  height: 250px;
+  margin-right: 40px;
+}
+.parenta .buyprice .bay {
+  width: 1150px;
+  height: 50px;
+  margin-right: 35px;
+  text-align: right !important;
+  font-size: 12px;
+  font-family: yekan;
+  color: #f16422;
+  display: flex;
+  justify-content: space-around;
+  flex-direction: row-reverse;
+  margin-top: 35px;
+  margin-bottom: 15px;
+}
+
+.parenta .buyprice .bay h1 {
+  width: 1150px;
+  height: 50px;
+  margin-right: 35px;
+  margin-bottom: 30px;
+  font-size: 24px;
+  font-style: normal;
+  font-family: yekan;
+}
+.parenta .buyprice .fourprice {
+  width: 1190px;
+  height: 170px;
+  margin: 30px auto;
+  display: flex;
+  justify-content: space-around;
+  flex-direction: row;
+}
+
+.parenta .buyprice .fourprice .price-1 {
+  width: 1150px;
+  height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 90px;
+}
+.parenta .buyprice .fourprice .price-1 a {
+  width: 150px;
+  text-decoration: none;
+  font-size: 12px;
+  font-family: yekan;
+  color: #2b2b2b;
+  display: flex;
+  flex-direction: row;
+  position: relative;
+}
+.parenta .buyprice .fourprice .price-1 img {
+  width: 70%;
+  object-fit: cover;
+}
+.parenta .buyprice .fourprice .price-1 h2 {
+  font-size: 16px;
+  margin-top: 35px;
+  margin-right: 10px;
+}
+
+.search1 {
+  width: 300px;
+  height: 50px;
+
+  display: inline-block;
+  vertical-align: top;
+  right: 90px;
+  position: absolute;
+}
+.search1 input[type="search1"] {
+  width: 300px;
+  background-color: #f6f2f2;
+  display: block;
+  height: 45px;
+  font-family: yekan;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 100;
+  border-radius: 28px;
+  margin: 0 auto;
+  margin-top: 26px;
+  box-sizing: border-box;
+  outline: unset;
+  border: unset;
+  transition: 300ms;
+}
+.search1 input[type="search1"]:focus {
+  box-shadow: inset 5px 5px 20px #767373;
+}
+
+.search1 input[type="search1"]::placeholder {
+  font-family: yekan;
+  padding: 20px;
+  color: #4a3c3c;
+  font-weight: bold;
+}
+.filter {
+  width: 900px;
+  height: 50px;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-right: 400px;
+  margin-top: 26px;
+}
+.filter .center {
+  width: 560px;
+  height: inherit;
+  background-color: #f6f2f2;
+  display: flex;
+  flex-flow: wrap;
+  justify-content: space-between;
+  margin: 0 10px;
+  border-radius: 20px;
+}
+.filter .center ul {
+  width: 70px;
+  display: flex;
+}
+.filter .center ul span {
+  font-size: 14px;
+  font-family: yekan;
+  display: flex;
+  flex-direction: row;
+  margin-right: 10px;
+  list-style: none;
+  text-decoration: unset;
+  text-align: center;
+}
+
+.filter .center ul div.fill {
+  width: 440px;
+  height: inherit;
+  margin-top: 5px;
+  font-size: 14px;
+  font-family: yekan;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-right: 60px;
+  gap: 30px;
+  list-style: none;
+}
+.filter .center ul div.fill li {
+  width: auto;
+  height: auto;
+  display: flex;
+}
+.filter .product {
+  width: 220px;
+  height: 50px;
+  border-radius: 20px;
+  background-color: #f6f2f2;
+}
+.filter .product span {
+  width: 180px;
+  height: 50px;
+  border-radius: 20px;
+  font-size: 16px;
+  font-family: yekan;
+  position: relative;
+  right: 25px;
+  top: 12px;
+}
+.filter .product #product {
+  width: 20px;
+  height: 20px;
+  position: relative;
+  right: 170px;
+  bottom: 28px;
+}
+.parenta .page {
+  width: 800px;
+  height: 50px;
+  background-color: #f6f2f2;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  position: relative;
+  right: 100px;
+  top: 20px;
+  margin-bottom: 20px;
+}
+.parenta .page ul {
+  width: inherit;
+  height: inherit;
+  background-color: white;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.parenta .page ul li {
+  width: inherit;
+  height: inherit;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.parenta .page ul h1 {
+  width: inherit;
+  height: inherit;
+  display: flex;
+
+  align-items: center;
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-right: 15px;
+  font-weight: lighter;
+}
+.parenta .page ul li.id {
+  width: inherit;
+  height: inherit;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+.parenta .page ul li.id:hover h2 {
+  font-size: 30px;
+  font-family: yekan;
+  margin-right: 5px;
+}
+
+.parenta .col {
+  width: 1200px;
+  height: 3900px;
+}
+
+.parenta .col .radif {
+  width: 900px;
+  height: inherit;
+  box-sizing: border-box;
+  margin-right: 320px;
+  display: grid;
+  grid-template-columns: repeat(3, 280px);
+  direction: ltr;
+  grid-template-rows: repeat(8, 485px);
+  border-radius: 20px;
+  gap: 5px;
+}
+.parenta .col .radif .sutun {
+  background-color: rgb(244, 238, 238);
+  border-radius: 10px;
+}
+
+.parenta .col .radif .sutun .image {
+  background-color: #f8f3f3;
+  border-radius: 10px;
+}
+.parenta .col .radif .sutun .image img {
+  width: 100%;
+  transition: 400ms;
+  background-color: lightgrey;
+  border-radius: 10px;
+}
+
+.parenta .col .radif .sutun:hover .image img {
+  width: 103%;
+  box-shadow: 5px 5px 10px gray;
+}
+
+.parenta .col .radif .sutun .t {
+  width: 100%;
+  font-size: 16px;
+  text-decoration: line-through;
+  font-family: yekan;
+  text-decoration: unset;
+  border-radius: 10px;
+}
+
+.parenta .col .radif .sutun .t span {
+  font-size: 16px;
+  text-decoration: line-through;
+  font-family: yekan;
+  margin-left: 10px;
+}
+
+.parenta .col .radif .sutun .t .text {
+  font-size: 16px;
+  font-family: yekan;
+  font-weight: bold;
+  text-decoration: unset;
+  margin-left: 170px;
+}
+.parenta .col .radif .sutun .prices {
+  width: 190px;
+  display: inline-block;
+  position: relative;
+  color: black;
+  margin-bottom: 0px;
+  left: -60px;
+  padding-right: 100px;
+}
+
+.parenta .col .radif .sutun .prices .price {
+  width: 190px;
+  display: inline-block;
+  position: relative;
+  color: black;
+  margin-bottom: 0px;
+  left: 70px;
+  padding-right: 100px;
+}
+.parenta .col .radif .sutun .prices .price-name a {
+  width: 100px;
+  text-align: right;
+  font-family: yekan;
+  position: absolute;
+  color: black;
+  left: 230px;
+  text-decoration: unset;
+  font-size: 16px;
+}
+
+ul.size li {
+  width: 40px;
+  border: 2px solid #d6d5d5;
+  border-radius: 5px;
+  height: 30px;
+  color: #3b3a3a;
+  line-height: 30px;
+  font-size: 14px;
+  text-align: center;
+  display: inline-block;
+  margin-left: 110px;
+  margin-top: 30px;
+  bottom: 10px;
+}
+ul.size li a {
+  color: #3b3a3a;
+  font-size: 16px;
+  text-decoration: unset;
+}
+.parenta .col {
+  width: 280px;
+  height: 3800px;
+  display: grid;
+  grid-template-columns: 275px;
+  grid-template-rows: repeat(4, 500px);
+  row-gap: 5px;
+  margin-right: 70px;
+}
+.parenta .col .column {
+  width: 275px;
+  height: 200px;
+
+  margin-top: -500px;
+}
+.parenta .col .column .one {
+  width: 275px;
+}
+.texta {
+  width: 990px;
+  height: auto;
+  margin-right: 100px;
+  margin-top: 120px;
+  font-family: yekan;
+}
+
+.texta .textb {
+  width: 990px;
+  height: 400px;
+  margin-right: 1px;
+  margin-top: 120px;
+  font-family: yekan;
+}
+
+.texta .textb h2 {
+  width: 990px;
+
+  margin-right: 69px;
+  margin-top: 5px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.texta .textb p {
+  width: 990px;
+
+  margin-right: 9px;
+  margin-top: 5px;
+  font-size: 16px;
+}
+.totala {
+  width: 1000px;
+  height: 300px;
+  margin-right: 40px;
+  display: flex;
+  justify-content: row;
+  margin-top: 70px;
+}
+
+.totala .line .wellcome {
+  width: 320px;
+  height: 270px;
+  display: inline-block;
+  margin-right: 700px;
+  margin-top: -280px;
+}
+.totala .line .wellcome .connect span {
+  width: 250px;
+  height: 30px;
+  font-size: 18px;
+  font-style: normal;
+  font-family: yekan;
+  font-weight: lighter;
+  display: inline-block;
+  background-color: white;
+}
+
+.totala .line .wellcome .connect p {
+  width: 250px;
+  height: 30px;
+  font-size: 14px;
+  font-style: normal;
+  font-family: yekan;
+  font-weight: lighter;
+  display: inline-block;
+  margin-top: 13px;
+  margin-right: 6px;
+}
+.totala .line .wellcome .tel p {
+  width: 35px;
+  height: 45px;
+  font-size: 14px;
+  font-style: normal;
+  font-family: yekan;
+  font-weight: lighter;
+  display: inline-block;
+  margin-top: 13px;
+  margin-right: 6px;
+  vertical-align: top;
+}
+.totala .line .wellcome .tel a {
+  width: 80px;
+  height: 45px;
+  font-size: 18px;
+  font-style: bold;
+  font-family: yekan;
+  font-weight: lighter;
+  display: inline-block;
+  margin-top: 13px;
+  text-decoration: unset;
+  color: rgb(30, 28, 28);
+}
+
+.totala .line .wellcome .sms p {
+  width: 50px;
+  height: 45px;
+  font-size: 14px;
+  font-style: normal;
+  font-family: yekan;
+  font-weight: lighter;
+  display: inline-block;
+  margin-top: 13px;
+  margin-right: 6px;
+  vertical-align: top;
+}
+
+.totala .line .wellcome .sms a {
+  width: 80px;
+  height: 45px;
+  font-size: 18px;
+  font-style: bold;
+  font-family: yekan;
+  font-weight: lighter;
+  display: inline-block;
+  margin-top: 13px;
+  text-decoration: unset;
+  color: rgb(30, 28, 28);
+  margin-left: -18px;
+}
+
+.totala .line .wellcome .email p {
+  width: 50px;
+  height: 50px;
+  font-size: 14px;
+  font-style: normal;
+  font-family: yekan;
+  font-weight: lighter;
+  display: inline-block;
+  margin-top: 13px;
+  margin-right: 6px;
+  vertical-align: top;
+}
+
+.totala .line .wellcome .email a {
+  width: 40px;
+  height: 50px;
+  font-size: 18px;
+  font-style: bold;
+  font-family: yekan;
+  font-weight: lighter;
+  display: inline-block;
+  margin-top: 13px;
+  text-decoration: unset;
+  color: rgb(30, 28, 28);
+  margin-right: -8px;
+}
+.totala .social {
+  width: 370px;
+  height: 270px;
+  display: inline-block;
+  position: relative;
+  right: -60px;
+  bottom: 10px;
+}
+
+.totala .social .all {
+  width: 360px;
+  height: 270px;
+}
+
+.totala .social .all a {
+  width: 300px;
+  height: 32px;
+  font-size: 18px;
+  display: flex;
+  justify-content: flex-end;
+  flex-direction: row;
+  text-decoration: unset;
+  color: #1ac977;
+  margin-top: 20px;
+}
+
+.totala .social .all a img {
+  width: 193px;
+  height: 32px;
+}
+.totala .social .all a span {
+  width: 200px;
+  height: 40px;
+  border-radius: 20px;
+  background-color: white;
+  border-style: solid;
+  margin-top: 10px;
+  text-align: center;
+  line-height: 40px;
+  margin-left: 10px;
+  border-color: #1ac977;
+  margin-bottom: 30px;
+}
+
+.totala .social .all .dnl img {
+  width: 8%;
+  height: 32px;
+  position: relative;
+  right: 55px;
+  top: 17px;
+  bottom: 20px;
+}
+.totala .social .all .dnl span {
+  width: 200px;
+  height: 40px;
+  border-radius: 20px;
+  background-color: white;
+  border-style: solid;
+  margin-top: 10px;
+  text-align: center;
+  line-height: 40px;
+  margin-left: 10px;
+  border-color: #1ac977;
+}
+.social .all .socials {
+  width: 280px;
+  height: 50px;
+  margin-top: 50px;
+  margin-right: 15px;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: flex-end;
+  text-decoration: unset;
+  list-style: none;
+  column-gap: 9px;
+  bottom: 20px;
+}
+.social .all .socials li {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border-style: solid;
+  line-height: 60px;
+  font-weight: lighter;
+}
+.social .all .socials li a {
+  width: 30px;
+  height: 30px;
+  line-height: 45px;
+  font-weight: lighter;
+}
+.social .all .socials li a img {
+  width: 20px;
+  height: 20px;
+  line-height: 25px;
+  font-weight: lighter;
+  position: relative;
+  top: -9px;
+}
+.social .all .mag {
+  width: 60px;
+  height: 140px;
+}
+.social .all .mag img {
+  width: 60px;
+  height: 40px;
+  margin-left: 9px;
+}
+.totala {
+  width: 990px;
+  height: 300px;
+
+  margin-top: 100px;
+  margin-right: -50px;
+}
+.totala .line {
+  width: 990px;
+  height: 300px;
+  display: flex;
+  flex-wrap: wrap;
+}
+.totala .line .column {
+  width: 220px;
+  height: 270px;
+}
+#buy-m {
+  width: 180px;
+  height: 45px;
+  display: block;
+  margin-right: 50px;
+  list-style: none;
+}
+#buy-s {
+  width: 180px;
+  height: 40px;
+  display: block;
+  list-style: none;
+}
+#buy-s h1 {
+  width: 60px;
+  font-size: 18px;
+  list-style: none;
+  font-style: normal;
+  font-family: yekan;
+  font-weight: lighter;
+}
+#buy-m li a {
+  width: 180px;
+  height: 44px;
+  display: flex;
+  flex-flow: row wrap;
+  align-items: flex-end;
+  text-decoration: none;
+  font-size: 16px;
+  font-style: normal;
+  font-family: yekan;
+  font-weight: lighter;
+}
+#buy-m li a span {
+  width: 179px;
+  height: inherit;
+  column-gap: 5px;
+  background-color: white;
+  color: rgb(99, 97, 97);
+}
+
+#custumer-m {
+  width: 180px;
+  height: 45px;
+  display: block;
+  list-style: none;
+}
+#custumer-s {
+  width: 180px;
+  height: 40px;
+  display: block;
+  list-style: none;
+}
+#custumer-s h1 {
+  width: 150px;
+  font-size: 18px;
+  font-style: normal;
+  font-family: yekan;
+  font-weight: lighter;
+}
+#custumer-m li a {
+  width: 180px;
+  height: 44px;
+  display: flex;
+  flex-flow: row wrap;
+  align-items: flex-end;
+  text-decoration: none;
+  font-size: 16px;
+
+  font-style: normal;
+  font-family: yekan;
+  font-weight: lighter;
+}
+#custumer-m li a span {
+  width: 179px;
+  height: inherit;
+  column-gap: 5px;
+  background-color: white;
+  color: rgb(99, 97, 97);
+}
+
+#info-m {
+  width: 180px;
+  height: 45px;
+  display: block;
+  margin-right: 20px;
+  list-style: none;
+}
+#info-s {
+  width: 180px;
+  height: 40px;
+  display: block;
+  list-style: none;
+}
+#info-s h1 {
+  width: 120px;
+  font-size: 18px;
+
+  font-style: normal;
+  font-family: yekan;
+  font-weight: lighter;
+}
+#info-m li a {
+  width: 180px;
+  height: 44px;
+  display: flex;
+  flex-flow: row wrap;
+  align-items: flex-end;
+  text-decoration: none;
+  font-size: 16px;
+  font-style: normal;
+  font-family: yekan;
+  font-weight: lighter;
+}
+#info-m li a span {
+  width: 179px;
+  height: inherit;
+  column-gap: 5px;
+  background-color: white;
+  color: rgb(99, 97, 97);
+}

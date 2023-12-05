@@ -1,0 +1,1253 @@
+var mostSearched = [];
+var suggestionProducts = [];
+var nullSuggestionResult = [];
+function GA4Event(type, data) {
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: "ga4event",
+    ga4eventname: type,
+    ecommerce: data,
+  });
+}
+
+$(document).ready(function () {
+  $("#open-anjoman").click(() => {
+    if (!$('#anjoman-img').attr('src')) {
+      const dataSrc = $("#anjoman-img").data("src");
+      $('#anjoman-img').attr('src', dataSrc);
+    }
+  });
+  $(".best-seller-wrapper").owlCarousel({
+    rtl: true,
+    nav: false,
+    dot: false,
+    items: 5,
+    dotsContainer: "#searchBestSellerDot",
+    navContainer: "#searchBestSellerNav",
+    margin: 8,
+    slideBy: 4,
+  });
+  /**
+   * top banner
+   */
+  function getStickyBanner() {
+    var settings = {
+      url: `${baseUriAPI}v1/top-banner?platform=desktop`,
+      method: "get",
+      timeout: 0,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      success: function (data) {
+        if (data.status_code === 200 && data.data !== null) {
+          $(".header-sticky-banner").show();
+          $(".header-sticky-banner a").attr("href", data.data.href);
+          $(".header-sticky-banner a").css(
+            "background-image",
+            `url(${data.data.pic_src})`
+          );
+          // except section
+          if (
+            data.data.except.includes("checkout") &&
+            window.location.href.includes("order") &&
+            window.location.href.includes("step")
+          ) {
+            $(".header-sticky-banner").hide();
+          }
+        } else {
+          $(".header-sticky-banner").hide();
+        }
+      },
+    };
+
+    $.ajax(settings);
+  }
+  getStickyBanner();
+  /**
+   * check location client
+   */
+  function getLocationClient() {
+    var settings = {
+      url: `${baseUriAPI}v1/app/client_info`,
+      method: "get",
+      timeout: 0,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      success: function (data) {
+		function timeDifference (date1, date2) {
+            try {
+                var difference = date1 - date2;
+
+                var daysDifference = Math.floor(difference / 1000 / 60 / 60 / 24);
+                difference -= daysDifference * 1000 * 60 * 60 * 24;
+
+                var hoursDifference = Math.floor(difference / 1000 / 60 / 60);
+                difference -= hoursDifference * 1000 * 60 * 60;
+
+                var minutesDifference = Math.floor(difference / 1000 / 60);
+                difference -= minutesDifference * 1000 * 60;
+
+                var secondsDifference = Math.floor(difference / 1000);
+
+                return {
+                    day: daysDifference,
+                    hours: hoursDifference
+                };
+            } catch (error) {
+                console.log(error);
+                return 1;
+            }
+        };
+        if (data.status_code === 200) {
+          var isIranIp = data.data.ip.is_iran_ip;
+		  var vpnCheckerSet=localStorage.getItem("banimodeVpnChecker");
+		  var timeDiff={ day:0,  hours:0};
+        
+
+          if(vpnCheckerSet){
+            timeDiff=timeDifference(new Date().getTime(),JSON.parse((vpnCheckerSet)));
+          }else{
+            localStorage.setItem("banimodeVpnChecker", new Date().getTime().toString());
+          }
+          if (!isIranIp && (timeDiff.day || timeDiff.hours>2)) {
+            setTimeout(function () {
+              $("#location-client").addClass("slide-up-vpn");
+            }, 3000);
+            setTimeout(function () {
+              $("#location-client").removeClass("slide-up-vpn");
+              $("#location-client").addClass("slide-down-vpn");
+            }, 10000);
+          }
+		  if (!isIranIp && window.location.href.includes("order?step=")) {
+            setTimeout(function () {
+              $("#location-client").addClass("slide-up-vpn");
+            }, 3000);
+            setTimeout(function () {
+              $("#location-client").removeClass("slide-up-vpn");
+              $("#location-client").addClass("slide-down-vpn");
+            }, 10000);
+          }
+        }
+      },
+    };
+
+    $.ajax(settings);
+  }
+  getLocationClient();
+
+  // the fuction to format prices
+  $.fn.digits = function () {
+    return this.each(function () {
+      $(this).text(
+        $(this)
+          .text()
+          .replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,")
+      );
+    });
+  };
+
+  //  the function to prevent xss
+  function htmlEncode(value) {
+    return value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  setInterval(function () {
+    $(".shiny-img.on").toggleClass("disappear");
+  }, 1000);
+
+  // footer js
+  $(".collapse").on("show.bs.collapse", function () {
+    $("#show-more-about").text("کمتر ");
+  });
+  $(".collapse").on("hidden.bs.collapse", function () {
+    $("#show-more-about").text("بیشتر بخوانید");
+  });
+
+  // inner brand js
+  $("#show-more-brand").click(function () {
+    if ($(this).attr("class") === "open") {
+      $("#show-more-brand .more-brand").text("نمایش بیشتر");
+      $("#show-more-brand .font-icon").attr(
+        "class",
+        "font-icon icon-arrow-down-pdp"
+      );
+      $("#show-more-brand").attr("style", "");
+      $("#more-brand").animate({ height: "140px" }, 100);
+      $(this).removeClass("open");
+    } else {
+      $(this).addClass("open");
+      $("#show-more-brand .more-brand").text("کمتر ");
+      $("#show-more-brand .font-icon").attr(
+        "class",
+        "font-icon icon-arrow-top-filters"
+      );
+      $("#show-more-brand ").css("background", "transparent");
+      $("#more-brand").animate({ height: "100%" }, 200);
+    }
+  });
+
+  // ___________________ header js
+  /* $(".main-list li").has('.category-details').mouseover(function() {
+        $(".dark-background").addClass("active")
+    });
+    $(".main-list li").mouseout(function() {
+        $(".dark-background").removeClass("active")
+    }); */
+
+  // profile menu
+  $(".profile").click(function () {
+    $("#cartMenu").removeClass("active");
+    $(".profile").toggleClass("active");
+  });
+
+  //request ot get wallet amount
+  window.customer !== undefined &&
+    (window.customer.type == "signin" || window.customer.type == "signup") &&
+    window.customer.token != undefined &&
+    window.customer.token != "";
+  if (
+    window.customer !== undefined &&
+    (window.customer.type == "signin" || window.customer.type == "signup") &&
+    window.customer.token != undefined &&
+    window.customer.token != ""
+  ) {
+    axios.create({
+      baseURL: baseUriAPI,
+      headers: {
+        Authorization: "Bearer " + window.customer.token,
+        platform: "desktop",
+      },
+    });
+    axios({
+      method: "get",
+      url: baseUriAPI + baseAPIV1 + "wallet/amount",
+      headers: {
+        Authorization: "Bearer " + window.customer.token,
+      },
+    })
+      .then(function (response) {
+        $(".header-wallet-amount").text(
+          response.data.data.amount
+            .toString()
+            .replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,") + "  تومان  "
+        );
+      })
+      .catch();
+  }
+
+  // hover wallet
+  $("#header-wallet").hover(
+    function () {
+      $("#header-wallet .header-submenu").addClass("active");
+    },
+    function () {
+      $("#header-wallet .header-submenu").removeClass("active");
+    }
+  );
+
+  // click wallet button
+  $(".wallet-btn").click(function () {
+    window.location.href = "/wallet-transactions";
+  });
+
+  // cart menu
+  $(".cart-btn").click(function () {
+    var url = window.location.href;
+    if (url.includes("/order?step=")) {
+      window.location.href = window.location.origin + "/order?step=0";
+    } else {
+      $(".profile").removeClass("active");
+      $("#cartMenu").toggleClass("active");
+    }
+  });
+  $(".wishlist-btn").click(function () {
+    window.location.href = "/wishlist";
+  });
+  $("body").click(function () {
+    $("#cartMenu, .profile").removeClass("active");
+  });
+
+  $("#cartMenu, .cart-btn, #profileMenu, .profile").click(function (event) {
+    event.stopPropagation();
+  });
+
+  if ($(".cart-products .product-card").length == 0) {
+    $("#cartMenu .header-submenu-container").hide();
+    $("#cartMenu .empty-cart").fadeIn();
+    $(".cart-btn-count").fadeOut(100);
+  }
+  $(".cart-btn-count").text($(".cart-products .product-card").length);
+
+  //delete product
+  $(".product-card .img-box .remove").click(function () {
+    var currentProduct = $(this)
+      .parent(".img-box")
+      .parent(".product-card")
+      .attr("product-id");
+    $(".product-card").remove("[product-id=" + currentProduct + "]");
+    $(".cart-btn-count").text($(".cart-products .product-card").length);
+    if ($(".cart-products .product-card").length == 0) {
+      $("#cartMenu .header-submenu-container").hide();
+      $("#cartMenu .empty-cart").fadeIn();
+      $(".cart-btn-count").fadeOut(100);
+    }
+  });
+
+  // $(".owl-carousel.pdp-gallery").owlCarousel({
+  //     rtl: true,
+  //     items: 1,
+  //     nav: true,
+  //     dots: true,
+  //     dotsContainer: '.gallery-dots',
+  //     // navContainer: 'gallery-nav'
+  // });
+  // $(".owl-carousel.color-list").owlCarousel({
+  //     rtl: true,
+  //     items: 7,
+  //     // margin: 40,
+  //     nav: true,
+  //     dots: true,
+  //     startPosition: activeColor
+  //     // mouseDrag: false,
+  //     // loop: true
+  // });
+
+  // $("#pdpProductColorList input").click(function () {
+  //     $(".owl-carousel.pdp-gallery").trigger('destroy.owl.carousel');
+  //     $(".owl-carousel.pdp-gallery").owlCarousel({
+  //         rtl: true,
+  //         items: 1,
+  //         nav: true,
+  //         dots: true,
+  //         dotsContainer: '.gallery-dots',
+  //         // navContainer: 'gallery-nav'
+  //     });
+  // })
+  //owlproducts option
+  var owlProduct = $(".owl-product  .owl-carousel").not(
+    "#black-friday-00 .owl-product .owl-carousel,#home-amazing .owl-product .owl-carousel, #home-bani-suggest .owl-product .owl-carousel, .ProductsCarousel .owl-product .owl-carousel, .StyleWeek .owl-product .owl-carousel"
+  );
+  owlProduct.owlCarousel({
+    rtl: true,
+    margin: 30,
+    dots: false,
+    loop: true,
+    autoplay: true,
+    responsive: {
+      0: {
+        items: 3,
+      },
+      1170: {
+        items: 4,
+      },
+    },
+  });
+
+  // $('.owl-product  .owl-next').click(function () {
+  //     owlProduct.trigger('next.owl.carousel');
+  // })
+
+  // $('.owl-product .owl-prev').click(function () {
+  //     owlProduct.trigger('prev.owl.carousel', [300]);
+  // })
+
+  /*
+        //owl mode-suggest
+        var owlMode = $('.owl-mode-suggest  .owl-carousel');
+        owlMode.owlCarousel({
+            rtl: true,
+            margin: 30,
+            dots: false,
+            loop: true,
+            responsive: {
+                0: {
+                    items: 1
+                },
+                768: {
+                    items: 2
+                },
+                992: {
+                    items: 3
+                },
+                1170: {
+                    items: 4
+                }
+    
+            }
+        })
+    
+        $('.owl-mode-suggest  .owl-next').click(function () {
+            owlMode.trigger('next.owl.carousel');
+        })
+    
+        $('.owl-mode-suggest .owl-prev').click(function () {
+            owlMode.trigger('prev.owl.carousel', [300]);
+        })
+    */
+
+  // owl full width slider option
+  var owlFullSlider = $(".owl-fullSlider  .owl-carousel");
+  owlFullSlider.owlCarousel({
+    rtl: true,
+    margin: 0,
+    dots: true,
+    dotsContainer: ".owl-fullSlider .carousel-dots",
+    loop: true,
+    autoplay: true,
+    autoplayHoverPause: true,
+    responsive: {
+      0: {
+        items: 1,
+      },
+    },
+  });
+
+  $(".owl-fullSlider .owl-prev").click(function () {
+    owlFullSlider.trigger("next.owl.carousel");
+  });
+
+  $(".owl-fullSlider .owl-next").click(function () {
+    owlFullSlider.trigger("prev.owl.carousel", [300]);
+  });
+
+  var owlBigSlider = $(".owl-big .owl-carousel");
+  owlBigSlider.each(function () {
+    var $this = $(this);
+    $this.owlCarousel({
+      rtl: true,
+      margin: 0,
+      animateOut: "fadeOut",
+      dots: true,
+      dotsContainer: $this.siblings(".owl-navigation").find(".carousel-dots"),
+      loop: true,
+      autoplay: true,
+      autoplayHoverPause: true,
+      responsive: {
+        0: {
+          items: 1,
+        },
+      },
+    });
+  });
+
+  $(".owl-prev").click(function () {
+    $(this)
+      .closest(".big-slider")
+      .find(".owl-big.owl-carousel")
+      .trigger("next.owl.carousel");
+  });
+
+  $(".owl-next").click(function () {
+    $(this)
+      .closest(".big-slider")
+      .find(".owl-big.owl-carousel")
+      .trigger("prev.owl.carousel", [300]);
+  });
+
+  //owl half width slider option
+  var owlHalfSlider = $(".owl-halfSlider  .owl-carousel").not(
+    ".NewestBrandsCarousel .owl-halfSlider .owl-carousel"
+  );
+  owlHalfSlider.owlCarousel({
+    rtl: true,
+    margin: 50,
+    dots: false,
+    loop: true,
+    responsive: {
+      0: {
+        items: 2,
+      },
+    },
+  });
+
+  $(".owl-halfSlider .owl-prev ").click(function () {
+    owlHalfSlider.trigger("next.owl.carousel");
+  });
+
+  $(".owl-halfSlider .owl-next").click(function () {
+    owlHalfSlider.trigger("prev.owl.carousel", [300]);
+  });
+  //_________________________________product details page
+
+  $(".select-box").click(function () {
+    $(this).toggleClass("active");
+  });
+
+  //_________________________________payment
+  $(".connectToBankBtn").click(function () {
+    $("#payment").fadeOut(500);
+    $("#bankConnecting").delay(600).fadeIn(100);
+  });
+  //show  big search box
+  $(".search-box input").click(function (e) {
+    if (!$("#search-input").val() && nullSuggestionResult.length === 0) {
+      getSuggestion();
+    }
+    $(".dark-background").addClass("active-full");
+    e.stopPropagation();
+    $(".main-navigation").addClass("search-active");
+    $(".search-open").fadeIn(200);
+  });
+  $(".icon-search-header").on("click", function () {
+    if ($("#search-input").val()) {
+      resetTrends();
+      $(".search-box form").submit();
+    }
+  });
+  $("#form-search-header").on("submit", function (e) {
+    if (!$("#search-input").val()) {
+      e.preventDefault();
+    }
+  });
+  // add serach word in localstorage
+
+  /**
+   * ga4 search
+   */
+  var inputValuega4;
+  function searchHistory() {
+    var inputVal = htmlEncode($(".search-box input").val());
+    var searchHistory = JSON.parse(localStorage.getItem("searchHistory"));
+    if (
+      localStorage.getItem("searchHistory") &&
+      !searchHistory.find(function (search) {
+        return htmlEncode(search) === inputVal;
+      })
+    ) {
+      searchHistory.push(inputVal);
+      localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
+    } else if (!localStorage.getItem("searchHistory")) {
+      var searchHistory = [];
+      searchHistory.push(inputVal);
+      localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
+    }
+  }
+  $("#search-input").keyup(function (e) {
+    var inputVal = htmlEncode($(".search-box input").val());
+    if (e.keyCode === 13 && inputVal) {
+      searchHistory();
+      GA4Event("search", { search_term: inputValuega4 });
+    }
+  });
+  $(".search-box .font-icon").click(function () {
+    searchHistory();
+    GA4Event("search", { search_term: inputValuega4 });
+  });
+
+  //close search
+  function closeSearch() {
+    $(".dark-background").removeClass("active-full");
+    $(".search-box input").val("");
+    $(".main-navigation").removeClass("search-active");
+    $(".search-open").hide();
+    $(".search-trend,.search-history").removeAttr("style");
+    $(".search-result").hide();
+    $(".box-best-seller").hide();
+    $(".trend-box-suggestion-list").show();
+    $(".trends-label-wrapper").show();
+    resetTrends();
+  }
+  function resetTrends() {
+    mostSearched = nullSuggestionResult;
+    renderTrends();
+  }
+  function getSuggestion(q = "") {
+    $.ajax({
+      url: baseUriAPI + baseAPIV2 + "prediction/suggest?q=" + htmlEncode(q),
+      success: function (response) {
+        mostSearched = response.data.trends ? response.data.trends : [];
+        suggestionProducts = response.data.suggestion_products ? response.data.suggestion_products : [];
+        if (q.trim().length === 0) {
+          nullSuggestionResult = response.data.trends;
+          renderTrends();
+          $(".box-best-seller").hide();
+          $(".search-result").hide();
+        } else {
+          $(".trend-box-suggestion-list").show();
+          $(".trends-label-wrapper").show();
+          renderSuggestion(response.data);
+          renderBestSeller();
+          renderTrends();
+        }
+      },
+    });
+  }
+  function renderSuggestion(result) {
+    var html = "";
+    html += '<div class="search-title">نتایج جستجو:</div>';
+    html += '<div class="search-result-box">';
+    html += "<ul>";
+    html += '<li class="mb-1 color-gray">دسته بندی‌ها</li>';
+    if (result.categories.length > 0) {
+      $.each(result.categories, function (key, item) {
+        if (key < 10) {
+          html +=
+            '<li><a href="/search?q=' +
+            item.query +
+            " &search_category=" +
+            item.id +
+            '"><span class="color-gray">' +
+            item.query +
+            " در </span>" +
+            item.name +
+            "</a></li>";
+        }
+      });
+    } else {
+      html += "<li>نتیجه ای یافت نشد!</li>";
+    }
+    html += "</ul>";
+
+    html += "<ul>";
+    html += '<li class="mb-1 color-gray">برندها</li>';
+    if (result.brands.length > 0) {
+      $.each(result.brands, function (key, item) {
+        if (key < 10) {
+          html +=
+            '<li><a href="/search?q=' +
+            item.query +
+            " &search_brand=" +
+            item.id +
+            '"><span class="color-gray">' +
+            item.query +
+            " در </span>" +
+            item.name +
+            "</a></li>";
+        }
+      });
+    } else {
+      html += "<li>نتیجه ای یافت نشد!</li>";
+    }
+    html += "</ul>";
+
+    html += "<ul><li></li></ul>";
+
+    html += "</div>";
+
+    $(".search-result").html(html);
+
+    $(".search-trend,.search-history").hide();
+    $(".search-result").show();
+  }
+  function renderTrends() {
+    html = "";
+    if (mostSearched.length > 0) {
+      mostSearched.forEach((v, i) => {
+        if (i < 6) {
+          html +=
+            '<a href="https://www.banimode.com/search?q=' +
+            v +
+            '" class="trends-tag">' +
+            v +
+            "</a>";
+        }
+      });
+
+      $(".trend-box-suggestion-list").show();
+      $(".trends-label-wrapper").show();
+      $(".trends-label-wrapper").html(html);
+    } else {
+      $(".trends-label-wrapper").hide();
+      $(".trend-box-suggestion-list").hide();
+    }
+  }
+  function renderBestSeller() {
+    // $("#searchBestSellerNav").html("");
+    // $("#searchBestSellerDot").html("");
+    const maxSlide = 9;
+    let html = "";
+    suggestionProducts.forEach((v, index) => {
+      if (index < maxSlide) {
+        html +=
+          '<div class="best-item-box" dir="rtl">' +
+          '<div class="best-seller-card">' +
+          '<div class="best-seller-img-box">' +
+          '<a href="' +
+          baseUri +
+          v.link +
+          '">' +
+          '<img src="' +
+          v.images.thickbox_default[0] +
+          '" />' +
+          "</a>" +
+          "</div>" +
+          '<a href="' +
+          baseUri +
+          v.link +
+          '" class="best-seller-label">' +
+          v.product_name +
+          "</a>" +
+          "</div>" +
+          '<span class="orange-icon">' +
+          "</span>" +
+          "</div>" +
+          "</div>";
+      }
+    });
+    if (suggestionProducts.length > 0) {
+      $(".box-best-seller").show();
+      $(".best-seller-wrapper")
+        .trigger("replace.owl.carousel", html)
+        .trigger("refresh.owl.carousel");
+    } else {
+      $(".box-best-seller").hide();
+    }
+  }
+
+  var searchTimeout;
+  //show search detail
+  $(".search-box input").keyup(function (e) {
+    e.stopPropagation();
+    if ($(".search-box input").val().length > 2) {
+      pervSearchQuery = $(".search-box input").val();
+      inputValuega4 = $(".search-box input").val();
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(function () {
+        getSuggestion($(".search-box input").val());
+      }, 600);
+    } else if ($(".search-box input").val().length === 0) {
+      clearTimeout(searchTimeout);
+      setTimeout(() => {
+        resetTrends();
+      }, 600);
+      $(".trends-label-wrapper,.trend-box-suggestion-list").show();
+      $(".search-result,.box-best-seller").hide();
+      $(".search-trend,.search-history").show();
+    }
+  });
+
+  $(".navigation-general  .icon-cancel").click(closeSearch());
+  // $(document).scroll(function () {
+  //   closeSearch();
+  // });
+  $(".dark-background, .close-search").on("click", function (e) {
+    if ($(e.target).is(".history-serach-cancel")) {
+      $(e.target).parent("li").remove();
+      $(e.target).siblings("a").text();
+      var searchHistoryItems = JSON.parse(
+        localStorage.getItem("searchHistory")
+      );
+      const index = searchHistoryItems.indexOf(
+        $(e.target).siblings("a").text()
+      );
+      if (index > -1) {
+        searchHistoryItems.splice(index, 1);
+        localStorage.setItem(
+          "searchHistory",
+          JSON.stringify(searchHistoryItems)
+        );
+      }
+    } else if (
+      $(e.target).is(".history-cancel-all") ||
+      $(e.target).is(".history-cancel-all-icon")
+    ) {
+      localStorage.setItem("searchHistory", JSON.stringify([]));
+      $(".search-history").empty();
+      closeSearch();
+    } else if (
+      !$(e.target).is(".history-cancel") &&
+      !$(e.target).is(".history-serach-cancel") &&
+      $(".main-navigation").attr("class") == "main-navigation search-active"
+    ) {
+      closeSearch();
+    }
+  });
+  //show search history items
+  if (localStorage.getItem("searchHistory")) {
+    var searchHistoryItems = JSON.parse(localStorage.getItem("searchHistory"));
+    var cleanAll = "";
+    if (searchHistoryItems.length) {
+      cleanAll = "<span class='history-cancel-all'>پاک کردن همه </span>";
+      var lastSearch =
+        "<div class='search-title'> جستجو های پیشین:" +
+        cleanAll +
+        " </div><ul> ";
+      for (i = 0; i < searchHistoryItems.length; i++) {
+        lastSearch +=
+          "<li><a href='/search?q=" +
+          searchHistoryItems[i] +
+          "'>" +
+          searchHistoryItems[i] +
+          "</a><span class='font-icon icon-cancel history-cancel'></span></li>";
+      }
+      lastSearch += "</ul>";
+      $(".search-history").html(lastSearch);
+    } else {
+      $(".search-history").empty();
+    }
+  }
+  //show best seller
+
+  //remove search history
+  function removeSearchHistory() {
+    localStorage.removeItem('searchHistory')
+    $('.search-history').remove()
+  }
+  $(".history-cancel").click(function () {
+    var historyText = $(this).siblings("a").text();
+    $(this).parent("li").remove();
+    var searchHistoryItems = JSON.parse(localStorage.getItem("searchHistory"));
+    searchHistoryItems.splice(searchHistoryItems.indexOf(historyText), 1);
+    localStorage.setItem("searchHistory", JSON.stringify(searchHistoryItems));
+    if (searchHistoryItems.length === 0) {
+      removeSearchHistory()
+    }
+  });
+  $(document).on('click', '.history-cancel-all', removeSearchHistory)
+  // copy button
+  $(".profile-copy-code").click(function () {
+    $(this).parent(".id").children(".profile-code").select();
+    document.execCommand("copy");
+    $(this).children(".profile-tooltip").addClass("active");
+    $(this).children(".profile-tooltip").text("کپی شد");
+  });
+  $(".profile-copy-code").mouseout(function () {
+    $(this).children(".profile-tooltip").removeClass("active");
+    // $(this).children(".profile-tooltip").text("")
+  });
+  //after load get suggestion
+  // if (mostSearched.length === 0) {
+  // getSuggestion();
+  // }
+});
+
+String.prototype.replaceArray = function (find, replace) {
+  var replaceString = this;
+  var regex;
+  for (var i = 0; i < find.length; i++) {
+    regex = new RegExp(find[i], "g");
+    replaceString = replaceString.replace(regex, replace[i]);
+  }
+  return replaceString;
+};
+
+//add to cart
+function addToCart(attrId) {
+  if (window.customer) {
+    let token = window.customer.token;
+    $("body #wish-list").LoadingOverlay("show", {
+      background: "rgba(255, 255, 255, 0.7)",
+      image: tplUri + "assets/images/spinner-loading.svg",
+    });
+    return axios({
+      method: "post",
+      url: baseUriAPI + baseAPIV1 + "cart",
+      data: {
+        attribute_id: attrId,
+        count: 1,
+      },
+      headers: {
+        Authorization: `Bearer ` + token,
+      },
+    });
+  }
+}
+/*! js-cookie v3.2.1 | MIT */
+
+!(function (a) {
+  var b;
+  if (
+    ("function" == typeof define && define.amd && (define(a), (b = !0)),
+      "object" == typeof exports && ((module.exports = a()), (b = !0)),
+      !b)
+  ) {
+    var c = window.Cookies,
+      d = (window.Cookies = a());
+    d.noConflict = function () {
+      return (window.Cookies = c), d;
+    };
+  }
+})(function () {
+  function a() {
+    for (var a = 0, b = {}; a < arguments.length; a++) {
+      var c = arguments[a];
+      for (var d in c) b[d] = c[d];
+    }
+    return b;
+  }
+
+  function b(a) {
+    return a.replace(/(%[0-9A-Z]{2})+/g, decodeURIComponent);
+  }
+
+  function c(d) {
+    function e() { }
+
+    function f(b, c, f) {
+      if ("undefined" != typeof document) {
+        (f = a({ path: "/" }, e.defaults, f)),
+          "number" == typeof f.expires &&
+          (f.expires = new Date(1 * new Date() + 864e5 * f.expires)),
+          (f.expires = f.expires ? f.expires.toUTCString() : "");
+        try {
+          var g = JSON.stringify(c);
+          /^[\{\[]/.test(g) && (c = g);
+        } catch (j) { }
+        (c = d.write
+          ? d.write(c, b)
+          : encodeURIComponent(c + "").replace(
+            /%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g,
+            decodeURIComponent
+          )),
+          (b = encodeURIComponent(b + "")
+            .replace(/%(23|24|26|2B|5E|60|7C)/g, decodeURIComponent)
+            .replace(/[\(\)]/g, escape));
+        var h = "";
+        for (var i in f)
+          f[i] &&
+            ((h += "; " + i), !0 !== f[i] && (h += "=" + f[i].split(";")[0]));
+        return (document.cookie = b + "=" + c + h);
+      }
+    }
+
+    function g(a, c) {
+      if ("undefined" != typeof document) {
+        for (
+          var e = {},
+          f = document.cookie ? document.cookie.split("; ") : [],
+          g = 0;
+          g < f.length;
+          g++
+        ) {
+          var h = f[g].split("="),
+            i = h.slice(1).join("=");
+          c || '"' !== i.charAt(0) || (i = i.slice(1, -1));
+          try {
+            var j = b(h[0]);
+            if (((i = (d.read || d)(i, j) || b(i)), c))
+              try {
+                i = JSON.parse(i);
+              } catch (k) { }
+            if (((e[j] = i), a === j)) break;
+          } catch (k) { }
+        }
+        return a ? e[a] : e;
+      }
+    }
+    return (
+      (e.set = f),
+      (e.get = function (a) {
+        return g(a, !1);
+      }),
+      (e.getJSON = function (a) {
+        return g(a, !0);
+      }),
+      (e.remove = function (b, c) {
+        f(b, "", a(c, { expires: -1 }));
+      }),
+      (e.defaults = {}),
+      (e.withConverter = c),
+      e
+    );
+  }
+  return c(function () { });
+});
+
+//wishList
+$(document).ready(function () {
+  // if(window.customer.user &&(window.customer.type==='signin' || window.customer.type==='signup') ){
+  //     var wishList=window.customer.user.wishlist
+  //     // $('.product-card .product-card-like').each(function() {
+  //     //     $(this).attr('data-product-id');
+  //     //     console.log($(this).attr('data-product-id'))
+  //     //     wishList.map(product =>{
+  //     //         if(product.toString()===$(this).attr('data-product-id').toString()){
+  //     //             $(this).addClass('active')
+  //     //         }
+  //     //     })
+  //     // })
+  //     var pdpWishList=$('.wishlist').attr('data-product-id');
+  //     wishList.map(product =>{
+  //         if(product.toString()===pdpWishList){
+  //             $('.wishlist').addClass('active')
+  //         }
+  //     })
+  // }
+
+  //add wishList
+  $(document).on("click", ".product-card-like", addWishList);
+  $(document).on("click", ".product-summary-section .wishlist", addWishList);
+
+  $("body").append(
+    '<script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>'
+  );
+  $(".wishlist").append(
+    '<lottie-player src="https://assets5.lottiefiles.com/packages/lf20_jqpglpni.json"  background="transparent"  speed="1"  style="width: 50px; height: 50px; position: absolute; right: 4px; z-index: -1;"autoplay></lottie-player>'
+  );
+  $("lottie-player").hide();
+
+  function addWishList(e) {
+    /**
+     * Google Analytics 4
+     */
+    if (typeof breadcrumbs !== 'undefined' && productData !== 'undefined') {
+      var brc = JSON.parse(breadcrumbs);
+      var pdp_event_data = {
+        currency: "USD",
+        value: productData.product_specific_price
+          ? productData.product_specific_price.specific_price
+          : productData.product_price,
+        items: [
+          {
+            item_name: productData.product_name,
+            discount:
+              productData.product_specific_price &&
+                productData.product_specific_price.discount_percent
+                ? productData.product_specific_price.discount_percent
+                : 0,
+            item_brand: productData.product_manufacturer_name,
+            item_category: brc ? brc[brc.length - 1] : "",
+            price: productData.product_price,
+          },
+        ],
+      };
+      GA4Event("add_to_wishlist", pdp_event_data);
+    }
+    e.preventDefault();
+    if (
+      window.customer.user &&
+      (window.customer.type === "signin" || window.customer.type === "signup")
+    ) {
+      var token = window.customer.token;
+      if ($(this).hasClass("active")) {
+        if ($(this).attr("class") === "product-card-like active") {
+          var productAttributeId = $(this).attr("data-product-id");
+          $(this).removeClass("active");
+        }
+        if ($(".wishlist").attr("class") === "wishlist active") {
+          var productAttributeId = $(".wishlist").attr("data-product-id");
+          $(this).removeClass("active");
+        }
+        return axios
+          .delete(baseUriAPI + baseAPIV1 + "wishlist/" + productAttributeId, {
+            headers: {
+              Authorization: `Bearer ` + token,
+            },
+          })
+          .then(function (response) {
+            updateUserInfo()(this).removeClass("active");
+          });
+      } else {
+        if ($(this).attr("class") === "product-card-like") {
+          var productAttributeId = $(this).attr("data-product-id");
+          $("lottie-player").show();
+          $(this)
+            .children("span")
+            .append(
+              '<lottie-player src="https://assets5.lottiefiles.com/packages/lf20_jqpglpni.json"  background="transparent"  speed="1"  style="width: 34px; height: 34px; position: absolute; right: 7px; top: 8px; z-index: 0;" autoplay></lottie-player>'
+            );
+          $(this).addClass("waiting");
+
+          function addToWish(thisWish) {
+            setTimeout(function () {
+              thisWish.addClass("active");
+              thisWish.removeClass("waiting");
+              thisWish.children("span").children("lottie-player").remove();
+            }, 900);
+          }
+          addToWish($(this));
+        }
+        if ($(".wishlist").attr("class") === "wishlist") {
+          var productAttributeId = $(".wishlist").attr("data-product-id");
+          $("lottie-player").show();
+          $(".wishlist").append(
+            '<lottie-player src="https://assets5.lottiefiles.com/packages/lf20_jqpglpni.json"  background="transparent"  speed="1"  style="width: 50px; height: 50px; position: absolute; right: 4px; z-index: -1;" autoplay></lottie-player>'
+          );
+          $(this).addClass("waiting");
+
+          function addToWish(thisWish) {
+            setTimeout(function () {
+              thisWish.addClass("active");
+              thisWish.removeClass("waiting");
+              thisWish.children("lottie-player").remove();
+            }, 900);
+          }
+          addToWish($(this));
+        }
+
+        $.ajax({
+          url: baseUriAPI + baseAPIV1 + "wishlist/",
+          data: {
+            product_attribute_id: productAttributeId,
+          },
+          type: "POST",
+          headers: {
+            Authorization: `Bearer ` + token,
+          },
+          success: function (result) {
+            updateUserInfo();
+            $("this").addClass("active");
+          },
+        });
+      }
+    } else {
+      /*  showLoginModal() */
+      $("#login").modal("show");
+    }
+  }
+
+  $("#shipping-add-address").on("shown.bs.modal", function () {
+    if ($(".form-box input").val()) {
+      $(".form-box input").siblings("label").addClass("active");
+    }
+    if ($(".form-box textarea").val()) {
+      $(".form-box textarea").siblings("label").addClass("active");
+    }
+  });
+  $(".box-best-seller").hide();
+});
+
+window.onload = function () {
+  const b2bRegisterBtn = document.querySelectorAll(".b2b-event-scroll-btn");
+  if (b2bRegisterBtn) {
+    b2bRegisterBtn.forEach((i) => {
+      i.addEventListener("click", scrollToId);
+    });
+  }
+  const closeB2bModalEl = document.querySelectorAll(".b2b-close-modal-event");
+  if (closeB2bModalEl) {
+    closeB2bModalEl.forEach((i) => {
+      i.addEventListener("click", closeB2bModal);
+    });
+  }
+
+  const openModalEl = document.querySelectorAll(".b2b-event-open-modal");
+  if (openModalEl) {
+    openModalEl.forEach((i) => {
+      i.addEventListener("click", openB2bModal);
+    });
+  }
+  const toggleEl = document.querySelectorAll(".b2b-toggle-answare-event");
+  if (toggleEl) {
+    toggleEl.forEach((i) => {
+      i.addEventListener("click", toggleAnsware);
+    });
+  }
+};
+const scrollToId = (e) => {
+  const classList = e.target.classList;
+  let id = -1;
+  classList.forEach((i) => {
+    if (i.includes("data-")) {
+      id = i.split("data-")[1];
+    }
+  });
+  if (id) {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  }
+};
+const closeB2bModal = (e) => {
+  if (
+    e.target.classList.contains("b2b-overlay") ||
+    e.target.classList.contains("b2b-close-modal")
+  ) {
+    document.querySelector(".b2b-overlay").style.display = "none";
+    document.querySelector(".b2b-modal-item").style.display = "none";
+    document.body.style.overflowY = "auto";
+  }
+};
+const closeAllAnsware = () => {
+  const allAnsware = document.querySelectorAll(".b2b-faq-answare");
+  const allQuestion = document.querySelectorAll(".b2b-faq-title");
+  allQuestion.forEach((a) => {
+    a.classList.remove("b2b-open");
+    a.classList.add("b2b-close");
+    a.querySelector("img").classList.remove("b2b-open");
+  });
+  allAnsware.forEach((a) => {
+    a.classList.remove("b2b-hight-auto");
+    a.classList.add("b2b-hight-zero");
+    a.style.height = "0px";
+  });
+};
+const dataModal = [
+  {
+    src: "https://www.banimode.com/img/cms/cms/organs/450x300-%DA%A9%D8%A7%D8%B1%D8%AA-%D9%87%D8%AF%DB%8C%D9%87.jpg",
+    title: "کارت های هدیه",
+    desc: "هدیه دادن به کارکنان و مشتریان، با ایجاد ارزش‌ها میان کسب‌وکارها و سازمان‌ها تمایز ایجاد می‌کند. اگر به دنبال ایجاد تمایز و بهبود محبوبیت سازمان و کسب‌وکار خود هستید، می‌توانید با اهدای کارت هدیه بانی مد انتخاب را به همراهان خود هدیه دهید تا آن‌ها بر اساس سلیقۀ خود هدیه‌ای را انتخاب کنند.ارائه گیفت کارت به سازمان‌ها (با درصد تخفیفی مناسب)، صورت می‌پذیرد و مشتریان نهایی نیز از تخفیفات سایت برخوردار هستند. بدیهی است همه از داشتن یک کارت هدیه‌ برای خرید از سایت بانی مد خوشحال خواهند شد، پس همکاران، مشتریان و شرکای تجاری خود را با کمترین هزینه خوشحال کنید.",
+  },
+  {
+    src: "https://www.banimode.com/img/cms/cms/organs/450x300-%DA%A9%D8%AF%D9%87%D8%A7%DB%8C-%D8%AA%D8%AE%D9%81%DB%8C%D9%81.jpg",
+    title: "کدهای تخفیف",
+    desc: `استقبال از کدهای هدیه در جهت ایجاد ارزش برای کسانی که ما را همراهی می‌کند به شکل فزاینده‌ای رو به افزایش است و بانی مد به‌عنوان یکی از استارتاپ‌های خلاق در حوزۀ تجارت الکترونیک سالانه سهم قابل‌توجهی از این نیاز روبه رشد را تأمین می‌کند.
+    از سوی دیگر این امکان از طرف واحد فروش سازمانی بانی مد وجود دارد که کدهای تخفیف اختصاصی برای اعضای باشگاه مشتریان کسب‌وکارها نیز تولید و در هر تعداد که نیاز مشتریان را برآورده می‌کند در اختیار قرار بگیرد.`,
+  },
+  {
+    src: "https://www.banimode.com/img/cms/cms/organs/450x300-%D9%87%D8%AF%D8%A7%DB%8C%D8%A7%DB%8C-%D8%B3%D8%A7%D8%B2%D9%85%D8%A7%D9%86%DB%8C.jpg",
+    title: "هدایای سازمانی",
+    desc: "واحد فروش سازمانی بانی مد، مفتخر است که اعلام نماید، کلیۀ اقلام، محصولات و کالاهایی که در مرکز خرید آنلاین بانی به فروش می‌رسد، می‌تواند با تخفیف قابل‌توجهی به‌عنوان هدیه سازمانی و تبلیغاتی در اختیار مدیران سختگیر و باسلیقه شرکت‌ها، کسب‌وکارها، سازمان‌ها و ارگان‌ها قرار گیرد.",
+  },
+  {
+    src: "https://www.banimode.com/img/cms/cms/organs/450x300-%D8%AA%D8%A7%D9%85%DB%8C%D9%86-%D9%84%D8%A8%D8%A7%D8%B3-%D8%B3%D8%A7%D8%B2%D9%85%D8%A7%D9%86%DB%8C.jpg",
+    title: "تامین لباس سازمانی",
+    desc: `بانی مد، به‌عنوان یکی از بزرگ‌ترین بازارهای آنلاین پوشاک، این امکان را فراهم کرده است که طیف گسترده‌ای از پوشاک رسمی تا روزمره را مطابق سلیقه، شخصیت و فرهنگ سازمان خود به‌عنوان لباس سازمانی انتخاب کنید.
+    درصورتی‌که حتی کالای موردنظر شما در سایت ناموجود شده یا از موجودی کافی برخوردار نباشد، واحد بازرگانی و تأمین کالای بانی مد می‌تواند به‌سرعت کالای موردنظرتان را به تعداد موردنیاز در اسرع وقت تأمین و در اختیار شما قرار دهد.همچنین تیم بانی مد، آماده به ارائه مشاوره های تخصصی با هدف کمک به مشتریان در زمینه فروش سازمانی و طراحی مناسب لباس فرم خود در کلیه زمینه های مربوطه همچون طرح، فرم، نوع پارچه، رنگ، سایزبندی، چاپ و گلدوزی لوگو، نحوه شستشو و نگهداری و… می باشند.`,
+  },
+];
+const toggleAnsware = (e) => {
+  try {
+    const classList =
+      e.target.classList.length > 0 && e.target.tagName !== "IMG"
+        ? e.target.classList
+        : e.target.parentNode.classList;
+    let id = -1;
+    classList.forEach((i) => {
+      if (i.includes("data-")) {
+        id = i.split("data-")[1];
+      }
+    });
+    if (id) {
+      const asnware = document.querySelector(".b2b-faq-answare-id-" + id);
+      if (!asnware.classList.contains("b2b-hight-auto")) {
+        closeAllAnsware();
+        document
+          .querySelector(".b2b-faq-answare-id-" + id)
+          .classList.add("b2b-hight-auto");
+        document
+          .querySelector(".b2b-faq-answare-id-" + id)
+          .classList.remove("b2b-hight-zero");
+        document
+          .querySelector(".b2b-faq-title-id-" + id + " img")
+          .classList.add("b2b-open");
+        const asnwareP = document.querySelector(
+          ".b2b-faq-answare-id-" + id + " p"
+        );
+
+        asnware.style.height = 24 + asnwareP.clientHeight + "px";
+      } else {
+        asnware.classList.remove("b2b-hight-auto");
+        asnware.classList.add("b2b-hight-zero");
+        document
+          .querySelector(".b2b-faq-title-id-" + id + " img")
+          .classList.remove("b2b-open");
+        asnware.style.height = "0px";
+      }
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+const openB2bModal = (e) => {
+  const classList = e.target.classList;
+  let id = -1;
+  classList.forEach((i) => {
+    if (i.includes("data-")) {
+      id = i.split("data-")[1];
+    }
+  });
+  if (id) {
+    document.body.style.overflowY = "hidden";
+    document.querySelector(".b2b-overlay").style.display = "flex";
+    document.querySelector(".b2b-modal-item").style.display = "block";
+    document.querySelector(".modal-b2b-text").innerText = dataModal[id].desc;
+    document.querySelector(".modal-b2b-title").innerText = dataModal[id].title;
+    document
+      .querySelector(".b2b-modal-img")
+      .setAttribute("src", dataModal[id].src);
+  }
+};

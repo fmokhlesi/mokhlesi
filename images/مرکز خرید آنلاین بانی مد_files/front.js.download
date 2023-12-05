@@ -1,0 +1,74 @@
+var duration_before = 500;
+var popup_fadein = 500;
+var popup_fadeout = 500;
+var popup_elm_id = 'popup-main';
+var popup_elm_center = 'popup-content-center';
+var popup_elm_right = 'popup-content-right';
+var duration_display = 0;
+var scroll_lock = true;
+var popup_click_close = true;
+$(document).ready(function() {
+    $.ajax({
+        url: '/module/banipopup/popup',
+        dataType: 'json',
+        data: {
+            'page_name': page_name,
+            'id_product': (typeof id_product != "undefined") ? id_product : 0,
+            'id_category': $('[name = "id_category"]').val(),
+        },
+        success: function(data) {
+
+            if ( data != null && data.info != null ) {
+                var popup_info = data.info.popup;
+                $("#banipopups").html(data.popup);
+                $("#popup-main").css("background", convertHex(popup_info.page_background_color, popup_info.popup_background_opacity));
+                $(".popup-content-left").css("background", popup_info.popup_background_color);
+                duration_before = popup_info.duration_before * 1000;
+                duration_display = popup_info.duration_display * 1000;
+                popup_fadein = popup_info.effect_open_speed;
+                popup_fadeout = popup_info.effect_close_speed;
+                scroll_lock = popup_info.popup_prevent_scroll;
+                popup_click_close = popup_info.popup_click_close;
+                if (popup_info.image_url_redirect != null)
+                    $("." + popup_elm_center + " , ." + popup_elm_right).data("href", popup_info.image_url_redirect);
+                if (popup_info.active == 1)
+                    setTimeout('showPopup()', duration_before);
+            }
+        }
+    });
+});
+function showPopup() {
+    $('#' + popup_elm_id).fadeIn(popup_fadein);
+    if (scroll_lock == true) $('body').css('overflow', 'hidden');
+    if (duration_display != 0)
+        window.setTimeout('closePopup() ;', duration_display);
+}
+function closePopup() {
+    $('#' + popup_elm_id).fadeOut(popup_fadeout);
+    if (scroll_lock == true) $('body').css('overflow', 'visible');
+}
+$(document).on('click', '.popup-close-btn', function() {
+    closePopup();
+});
+$(document).on('click', '.popup-content-center', function(e) {
+    if ($(this).data("href") != '') window.location = 'http://' + $(this).data("href");
+});
+$(document).on('click', '#popup-main , .popup-content-center', function(e) {
+    if ((e.target.id == popup_elm_id || e.target.className == popup_elm_right || e.target.className == popup_elm_center) && popup_click_close == true) {
+        closePopup();
+    }
+});
+function showPopupMsg(msg, autoclose = false) {
+    $(".popup-result-msg").html(msg);
+    $(".popup-result").fadeIn(500);
+    if (autoclose == true)
+        window.setTimeout('$(".popup-result").fadeOut(500)', 3000);
+}
+function convertHex(hex, opacity) {
+    hex = hex.replace('#', '');
+    r = parseInt(hex.substring(0, 2), 16);
+    g = parseInt(hex.substring(2, 4), 16);
+    b = parseInt(hex.substring(4, 6), 16);
+    result = 'rgba(' + r + ',' + g + ',' + b + ',' + opacity / 100 + ')';
+    return result;
+}

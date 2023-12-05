@@ -1,0 +1,121 @@
+.parent .bbrand {
+  width: 100%;
+  height: 300px;
+  padding-top: 5px;
+  text-align: center;
+  margin-bottom: 40px;
+  display: block;
+}
+.parent .bbrand .row {
+  width: 100%;
+  height: 250px;
+  margin-right: 5px;
+  text-align: center;
+  display: inline-block;
+  margin-bottom: 10px;
+}
+
+.parent .bbrand .row .col {
+  width: 99%;
+  height: 180px;
+  margin-right: 2px;
+  text-align: center;
+  display: inline-block;
+  top: 5px;
+  position: relative;
+}
+
+.parent .bbrand .row .col h1 {
+  width: 95%;
+  height: 60px;
+  font-size: 28px;
+  text-align: center;
+  font-family: yekan;
+  font-weight: bold;
+  line-height: 60px;
+  text-decoration: unset;
+  display: inline-block;
+  position: absolute;
+  top: 0px;
+  right: 40px;
+}
+
+.parent .bbrand .row .col .slider {
+  width: 99%;
+  height: 130px;
+  top: 20px;
+  display: block;
+  position: absolute;
+  top: 60px;
+}
+
+.parent .bbrand .row .col .slider .swiper.mySwiperbrand {
+  width: 99%;
+  height: 99%;
+  margin-top: 10px;
+}
+
+.parent
+  .bbrand
+  .row
+  .col
+  .slider
+  .swiper.mySwiperbrand
+  .swiper-wrapper
+  .swiper-slide {
+  width: 50px;
+  height: 70px;
+  text-align: center;
+  font-size: 0px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 25px;
+}
+
+.parent
+  .bbrand
+  .row
+  .col
+  .slider
+  .swiper.mySwiperbrand
+  .swiper-wrapper
+  .swiper-slide
+  img {
+  display: inline-block;
+  width: 110px;
+  object-fit: cover;
+}
+
+.parent
+  .bbrand
+  .row
+  .col
+  .slider
+  .swiper.mySwiperbrand
+  .swiper-wrapper
+  .swiper-slide
+  .swiper.mySwiperbrand {
+  margin-left: auto;
+  margin-right: auto;
+  background-color: rgb(8, 8, 8);
+  width: 1000px;
+  height: 2000px;
+}
+
+.look-all-2 {
+  width: 250px;
+  height: 60px;
+  text-align: center;
+  border: 1px solid #2b3e2e;
+  border-radius: 28px;
+  font-family: yekan;
+  color: #00bf6f;
+  margin: 1px 550px;
+}
+.parent .look-all-2 a {
+  text-decoration: unset;
+  color: #00bf6f;
+  font-size: 20px;
+  text-align: center;
+  line-height: 55px;
+}

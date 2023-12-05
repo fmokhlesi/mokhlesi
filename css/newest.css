@@ -1,0 +1,157 @@
+.parent .banimag {
+  width: 100%;
+  height: 600px;
+}
+.parent .banimag .newest {
+  width: 1280px;
+  height: 50px;
+  margin-top: 160px;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+  margin-right: 30px;
+}
+.parent .banimag .newest .new {
+  width: 1000px;
+  height: 50px;
+}
+.parent .banimag .newest .new h1 {
+  font-size: 26px;
+  font-family: yekan;
+  text-align: center;
+}
+/*ooooooo*/
+.swiper {
+  width: 100%;
+  height: 100%;
+}
+
+.swiper-slide {
+  text-align: center;
+  font-size: 18px;
+  background: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.swiper-slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.parent .banimag .informtion {
+  width: 98%;
+  height: 350px;
+  margin-right: 13px;
+}
+.parent .banimag .informtion .info {
+  width: 100%;
+  height: 350px;
+  text-align: center;
+}
+.parent .banimag .informtion .info .title {
+  width: 99%;
+  height: 270px;
+  text-align: center;
+  margin-right: 5px;
+}
+
+.parent
+  .banimag
+  .informtion
+  .info
+  .title
+  .swiper.mySwipernew
+  .swiper-wrapper
+  .swiper-slide {
+  width: inherit;
+  height:250px;
+  object-fit: cover;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+}
+.parent
+  .banimag
+  .informtion
+  .info
+  .title
+  .swiper.mySwipernew
+  .swiper-wrapper
+  .swiper-slide
+  img {
+  width: inherit;
+  height: 200px;
+  object-fit: cover;
+  background-color: red;
+}
+
+.parent
+  .banimag
+  .informtion
+  .info
+  .title
+  .swiper.mySwipernew
+  .swiper-wrapper
+  .swiper-slide
+  p {
+  width: 1000px;
+  height: 70px;
+  box-sizing: border-box;
+  text-align: right;
+  font-size: 22px;
+  font-family: yekan;
+  font-weight: bold;
+  margin-left: 70px;
+  position: absolute;
+  bottom: 0px;
+  right: 1px;
+  color: black;
+}
+
+.parent
+  .banimag
+  .informtion
+  .info
+  .title
+  .swiper.mySwipernew
+  .swiper-wrapper
+  .swiper-slide
+  p
+  a {
+  width: 1000px;
+  height: 50px;
+  box-sizing: border-box;
+  text-align: right;
+  font-size: 20px;
+  font-family: yekan;
+  margin-left: 70px;
+
+  position: absolute;
+  top: 30px;
+  right: 1px;
+  text-decoration: none;
+  color:rgb(11, 11, 11);
+}
+
+  .look-all-3 {
+   width: 250px;
+  height: 60px;
+  text-align: center;
+  border: 1px solid #2b3e2e;
+  border-radius: 28px;
+  font-family: yekan;
+  color: #00bf6f;
+  margin: 20px 550px;
+    }
+  .parent .look-all-3 a {
+  text-decoration: unset;
+  color: #00bf6f;
+  font-size: 20px;
+  text-align: center;
+  line-height: 55px;
+  
+  }

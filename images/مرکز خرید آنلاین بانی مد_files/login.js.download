@@ -1,0 +1,956 @@
+const banimodeUser = 'banimodeUserProd';
+
+var cookies = (document.cookie).split(';')
+
+var providerObj = {}
+var yektanet = ""
+var mediaad = ""
+for (var i = 0; i < cookies.length; i++) {
+    if (cookies[i].includes('analytics_campaign')) {
+        var yektanetObj = decodeURIComponent(cookies[i].split('=')[1]).split(',')
+        for (var j = 0; j < yektanetObj.length; j++) {
+            if (yektanetObj[j].includes("yn_data"))
+                yektanet = yektanetObj[j].split(':')[1].split('"')[1]
+        }
+    }
+    if (cookies[i].includes('clickId')) {
+        mediaad = decodeURIComponent(cookies[i].split('=')[1])
+    }
+
+}
+if (yektanet !== "") {
+    providerObj = { 'click_id': yektanet, 'provider': 'yektanet' }
+} else if (mediaad !== "") {
+    providerObj = { 'click_id': mediaad, 'provider': 'mediaad' }
+}
+
+function fetchLoginConfigs() {
+    axios.get('v2/auth/config', {
+        baseURL: baseUriAPI,
+        headers: {
+            'content-type': "application/json",
+            "Accept": "application/json"
+        }
+    }).then(function(response) {
+        if (response.data.status_code == 200) {
+            var config = response.data.data
+            for (var loginMethod in config.supported_login_methods) {
+                if (loginMethod === config.login_method) {
+                    var requiredFieldsArr = []
+                    var optionalFieldsArr = []
+                    config.supported_login_methods[loginMethod].required_fields.length > 0 && config.supported_login_methods[loginMethod].required_fields.forEach(function(item) {
+                        switch (item) {
+                            case 'phone':
+                                requiredFieldsArr.push(
+                                    '<p class="description">لطفا برای ادامه شماره همراه خود را وارد نمایید.</p>' +
+                                    '<div class="input-box">' +
+                                    '<span class="input-icon icon-profile-input-login font-icon"></span>' +
+                                    '<span class="font-icon icon-delete-input clear d-none"></span>' +
+                                    '<input type="tel" class="mobile-num-input" maxlength="11" placeholder="شماره همراه">' +
+                                    '<span class="error-txt"></span>' +
+                                    '</div>'
+                                )
+                                break;
+                            case 'email':
+                                requiredFieldsArr.push(
+                                    '<p class="description">لطفا ایمیل خود را وارد نمایید.</p>' +
+                                    '<div class="input-box">' +
+                                    '<span class="input-icon icon-profile-input-login font-icon"></span>' +
+                                    '<span class="font-icon icon-delete-input clear d-none"></span>' +
+                                    '<input type="email" class="email-input" maxlength="11" placeholder="ایمیل">' +
+                                    '<span class="error-txt"></span>' +
+                                    '</div>'
+                                )
+                                break;
+                        }
+                    })
+                    config.supported_login_methods[loginMethod].optional_fields.length > 0 && config.supported_login_methods[loginMethod].optional_fields.forEach(function(item) {
+                        switch (item) {
+                            case 'phone':
+                                optionalFieldsArr.push(
+                                    '<p class="description">لطفا برای ادامه شماره همراه خود را وارد نمایید.</p>' +
+                                    '<div class="input-box">' +
+                                    '<span class="input-icon icon-profile-input-login font-icon"></span>' +
+                                    '<span class="font-icon icon-delete-input clear d-none"></span>' +
+                                    '<input type="tel" class="mobile-num-input" maxlength="11" placeholder="شماره همراه">' +
+                                    '<span class="error-txt"></span>' +
+                                    '</div>'
+                                )
+                                break;
+                            case 'email':
+                                optionalFieldsArr.push(
+                                    '<p class="description">لطفا ایمیل خود را وارد نمایید.</p>' +
+                                    '<div class="input-box">' +
+                                    '<span class="input-icon icon-profile-input-login font-icon"></span>' +
+                                    '<span class="font-icon icon-delete-input clear d-none"></span>' +
+                                    '<input type="email" class="email-input" maxlength="11" placeholder="ایمیل">' +
+                                    '<span class="error-txt"></span>' +
+                                    '</div>'
+                                )
+                                break;
+                        }
+                    })
+
+                    $('.login-box .config-data').append(requiredFieldsArr)
+                }
+            }
+        }
+    }).catch(function(error) {
+
+    });
+}
+
+function checkCustomerToken() {
+    if (!getUserData()) {
+        axios.get('v1/auth/guest', {
+            baseURL: baseUriAPI,
+            headers: {
+                'Authorization': token,
+                'platform': 'desktop'
+            }
+        }).then(function(response) {
+            if (response.data.status_code == 200) {
+                var userObject = {
+                    'token': response.data.data,
+                    'registered_user': false,
+                };
+                setUserData(userObject);
+                window.customer = JSON.parse(getUserData());
+            }
+            getProfile();
+        });
+
+    } else {
+        window.customer = JSON.parse(getUserData());
+        getProfile();
+    }
+}
+
+function getUserData() {
+    var data = "";
+    if (supportsHtml5Storage()) {
+        data = localStorage.getItem(banimodeUser);
+    } else {
+        data = Cookies.get(banimodeUser);
+    }
+    return (data != '' && data != undefined) ? data : false;
+}
+
+function setUserData(data) {
+    if (supportsHtml5Storage()) {
+        data = localStorage.setItem(banimodeUser, JSON.stringify(data));
+    } else {
+        data = Cookies.set(banimodeUser, JSON.stringify(data));
+    }
+    return true;
+}
+
+function getClubStatus() {
+
+    var club = getUserData();
+    if (JSON.parse(club) && JSON.parse(club).user && !JSON.parse(club).user.customer_club_enable) {
+        $(".banicoin-header,.baniclub-profile").css('display', 'none');
+    }
+
+}
+
+
+function setExtraMenus(data) {
+    $("[data-menu='extra-menu']").remove();
+    if (!$.isEmptyObject(data.extra_menus)) {
+        var sideItem = []
+        var topItem = []
+        var sortedSideItem = []
+        var sortedTopItem = []
+        for (var index in data.extra_menus) {
+            if (data.extra_menus[index].position === "side" || data.extra_menus[index].position === "both") {
+                if (data.extra_menus[index].icon !== "") {
+                    var item = { key: data.extra_menus[index].priority, value: "<li data-menu='extra-menu'><a href='" + data.extra_menus[index].link + "'> <img src='" + data.extra_menus[index].icon + "'> <span>" + data.extra_menus[index].title + "</span></a></li>" }
+                    sideItem.push(item)
+                }
+                if (data.extra_menus[index].icon === "") {
+                    var item = { key: data.extra_menus[index].priority, value: "<li data-menu='extra-menu'><a href='" + data.extra_menus[index].link + "'> <span class='icon-order-detail font-icon'></span><span>" + data.extra_menus[index].title + "</span></a></li>" }
+                    sideItem.push(item)
+                }
+            }
+            if (data.extra_menus[index].position === "top" || data.extra_menus[index].position === "both") {
+                if (data.extra_menus[index].icon !== "") {
+                    var item = { key: data.extra_menus[index].priority, value: '<a data-menu="extra-menu" href="' + data.extra_menus[index].link + '" class="extra-item"><img src="' + data.extra_menus[index].icon + '"><span>' + data.extra_menus[index].title + '</span></a>' }
+                    topItem.push(item)
+                }
+                if (data.extra_menus[index].icon === "") {
+                    var item = { key: data.extra_menus[index].priority, value: '<a data-menu="extra-menu" href="' + data.extra_menus[index].link + '" class="extra-item"><span class="font-icon icon-order-detail color-green"></span><span>' + data.extra_menus[index].title + '</span></a>' }
+                    topItem.push(item)
+                }
+            }
+        }
+        sideItem.sort(function({ key: a }, { key: b }) { return a - b })
+        for (var item in sideItem) {
+            sortedSideItem = sortedSideItem.concat(sideItem[item].value)
+        }
+        topItem.sort(function({ key: a }, { key: b }) { return a - b })
+        for (var item in topItem) {
+            sortedTopItem = sortedTopItem.concat(topItem[item].value)
+        }
+        $("#profile-sidebar li.orders").before(sortedSideItem)
+        $("#profile-customer-logout").before(sortedTopItem)
+    }
+}
+
+
+
+function updateUserInfo() {
+    if (checkNested(window.customer, 'token')) {
+        axios.get('v1/profile', {
+            baseURL: baseUriAPI,
+            headers: {
+                'Authorization': 'Bearer ' + window.customer.token,
+                'platform': 'desktop'
+            }
+        }).then(function(response) {
+            if (response.data.status_code == 200) {
+                var userObject = {
+                    token: window.customer.token,
+                    type: "signin",
+                    user: response.data.data
+                };
+                setUserData(userObject);
+                window.customer = JSON.parse(getUserData());
+            }
+            getProfile();
+        });
+    }
+}
+
+
+function deleteUserData() {
+    Cookies.remove(banimodeUser);
+    if (supportsHtml5Storage()) {
+        localStorage.removeItem(banimodeUser);
+        if (window.location.pathname) {
+            window.location.href = "/login?back=" + window.location.pathname.replace('/', '');
+        } else {
+            window.location.href = "/login"
+        }
+    }
+}
+
+function logout() {
+    deleteUserData();
+}
+
+checkCustomerToken();
+
+function getProfile() {
+
+    if (window.customer.type == "signin" || window.customer.type == "signup") {
+        var firstname = (checkNested(window.customer, 'user', 'firstname')) && window.customer.user.firstname !== null ? window.customer.user.firstname + ' عزیز' : "بانی‌مدی عزیز";
+        $('.profile-container').removeClass('notauthorized').addClass('authorized');
+        $('.wishlist-btn,#header-wallet').removeClass('notauthorized').addClass('authorized');
+        $("#link-mini-cart").attr("href", "/order?step=1");
+        $('#miniCartRemoveProduct .cart-add-wishlist').css('display', 'block');
+        $("#profile-customer-name").text(firstname);
+        setExtraMenus(window.customer.user)
+    }
+}
+/*function getMiniCart(){
+    if (checkNested(window.customer, 'token')) {
+        axios.get('v1/cart', {
+            baseURL: baseUriAPI,
+            headers: {
+                'Authorization': 'Bearer ' +  window.customer.token
+            }
+        }).then(function(response) {
+            if (response.data.status_code == 200) {
+            }
+            getProfile();
+        });
+    }
+}
+
+function getCartQuantity(productData){
+    var totalQty = 0;
+   $(productData).each(function (index, product){
+       totalQty = product.quantity;
+   });
+   return totalQty;
+}*/
+
+$(document).ready(function() {
+
+
+    fetchLoginConfigs()
+    getClubStatus()
+
+    $(".login-register").on('click', function() {
+        // if(!$('.login-box .config-data').is(':empty'))
+        showLoginModal();
+    });
+
+    function showLoginModal() {
+        $("#login").modal('show');
+    }
+    var loginStep = "notAuthenticated"
+        // notAuthenticated  authenticated tokenStep
+    var userPrivacy = '<div class="custom-control custom-checkbox user-privacy"><input type="checkbox" class="checkbox custom-control-input" id="privacy-policy-checkbox" checked ><label for="privacy-policy-checkbox" class="custom-control-label"><a href="/content/96/privacy-policy"> شرایط و قوانین  </a> استفاده از سرویس های سایت بانی‌مد را می پذیرم .</label></div>'
+    var acceptPrivacy = true
+    $(document).on('change', '#privacy-policy-checkbox', function() {
+
+        if (this.checked) {
+            acceptPrivacy = true;
+            $('.user-privacy label ,.user-privacy label a').removeClass('color-red')
+        } else {
+            acceptPrivacy = false
+        }
+    })
+
+    $('#login .mobile-number-entry').append(userPrivacy)
+    $("#profile-customer-logout, .modal-button-logout").on('click', function(e) {
+        e.preventDefault();
+        window.location.href = "/?logout";
+        logout();
+
+    });
+
+
+    $('input').on('focus', function() {
+        $(this).parent('.input-box').removeClass('error')
+    })
+
+    if (loginStep === "notAuthenticated") {
+
+        $(".mobile-number-entry").delay(600).fadeIn(100)
+        $('#login button.close').delay(600).fadeIn(100)
+        $('#login button.login-back').fadeOut(500)
+        $(".authenticated").fadeOut(500)
+        $(".enter-the-token").fadeOut(500)
+        $(".mobile-num-input").focus()
+    } else if (loginStep === "tokenStep") {
+        $(".mobile-number-entry").fadeOut(500)
+        $(".authenticated").fadeOut(500)
+        $(".enter-the-token").delay(600).fadeIn(100);
+    } else if (loginStep === "authenticated") {
+        $('#login button.close').delay(600).fadeIn(100)
+        $('#login button.login-back').fadeOut(500)
+        $(".mobile-number-entry").fadeOut(500)
+        $(".enter-the-token").fadeOut(500)
+        $(".authenticated").delay(600).fadeIn(100)
+    }
+
+    // foucus mobile number input when page loaded
+    $(".mobile-num-input").focus()
+
+    $(".mobile-num-input").bind('blur keyup', function(e) {
+        if (e.type === 'blur' || e.keyCode === 13) {
+            if ($(this).val() && $(this).val().length === 11) {
+                $(this).parent(".input-box").removeClass("error")
+            } else {
+                $(this).parent(".input-box").addClass("error")
+                $(this).parent(".input-box").children(".error-txt").text("شماره موبایل به درستی وارد نشده است!")
+            }
+        }
+    })
+    $(".mobile-num-input").focus(function() {
+        $(this).parent(".input-box").removeClass("error")
+    })
+    $(".input-box .clear").click(function() {
+        $(this).parent(".input-box").children("input").val("")
+        $(".mobile-num-input").focus()
+    })
+
+    //show and hide password
+    $('.pwd-input').each(function() {
+        $(this).on("input", function(e) {
+            if (e.target.value.length > 0) {
+                $(this).parent(".input-box").children(".show-pwd").css("opacity", 1)
+            } else {
+                $(this).parent(".input-box").children(".show-pwd").css("opacity", 0)
+            }
+        })
+    })
+
+    $(".icon-active-display-pass").on("click", function() {
+        $(this).parent(".input-box").children("input").attr("type", "text")
+        $(this).hide().siblings('.icon-deactive-display-pass').fadeIn(300)
+    })
+    $(".icon-deactive-display-pass").on("click", function() {
+        $(this).parent(".input-box").children("input").attr("type", "password")
+        $(this).hide().siblings('.icon-active-display-pass').fadeIn(300)
+    })
+
+
+    // set password button on click
+    $("#pwd-opration").on("click", function() {
+        clickSetPasswordBtn()
+    })
+    $("#password-opration-input-repeat").on("keyup", function(e) {
+        if (e.which === 13) {
+            clickSetPasswordBtn()
+        }
+    })
+
+
+    $(".login-box input").on("input", function() {
+        $(this).parent(".input-box").removeClass("error")
+    })
+    $(".mobile-num-input").on("input", function() {
+        if ($(".mobile-num-input").val().length > 0)
+            $(this).parent(".input-box").children(".clear").removeClass("d-none")
+        else
+            $(this).parent(".input-box").children(".clear").addClass("d-none")
+    })
+
+    // go to set password state
+    $("#set-password").on("click", function() {
+        $(".login-box .authenticated").fadeOut(500)
+        $(".login-box .password-opration").delay(600).fadeIn(100)
+    })
+
+    $(".mobile-num-input").keypress(function justNumber(evt) {
+        var e = evt || window.event;
+        // for trans-browser compatibility
+        var charCode = e.which || e.keyCode;
+        if (charCode > 31 && (charCode < 47 || charCode > 57))
+            return false;
+        if (e.shiftKey)
+            return false;
+        return true;
+    })
+
+    // $(".mobile-number-entry .submit.green, .mobile-num-input").bind('click keyup', function(e){
+    //     if ((e.type === 'click' || e.keyCode == 13) && $(".mobile-num-input").val() && $(".mobile-num-input").val().length === 11) {
+    //         $(".mobile-number-entry").fadeOut(500)
+    //         $(".enter-the-token").delay(600).fadeIn(100)
+    //         tokenTimer()
+    //     }
+    // })
+
+    // will be token step when click on submit button
+    function requestPhone(){
+        if (acceptPrivacy) {
+            if ($(".mobile-num-input").val() && $(".mobile-num-input").val().length === 11) {
+                $('.mobile-number').html($(".mobile-num-input").val());
+                AuthRequest($(".mobile-num-input").val());
+                $('.login-box .mobile-number-entry').removeClass('selected-step');
+            } else {
+                $('.mobile-number-entry .submit.green').parent().find(".input-box").addClass("error").find(".error-txt").text("شماره موبایل به درستی وارد نشده است!")
+            }
+        } else {
+            $('.user-privacy label ,.user-privacy label a').addClass('color-red');
+        }
+    }
+    $("#request-phone-user, #request-phone-user-page").click(function() {
+        requestPhone();
+    })
+    $(".send-again-call").click(function() {
+        
+        AuthRequest($(".mobile-num-input").val(),$(this).attr('type'),'call');
+    })
+    $(".send-again-sms").click(function() {
+        AuthRequest($(".mobile-num-input").val(),$(this).attr('type'),'sms');
+    })
+
+     
+    $(document).on("keydown", function (e) {
+        if (e.key === "Enter" && $('.login-box .mobile-number-entry').hasClass('selected-step')) {
+         requestPhone();
+        }
+      });
+    // login width token when user choosen
+    $(document).on('click', '#force-otp', function() {
+        AuthRequest($('.mobile-num-input').val(), 'login_with_otp')
+        $('.container-seng-again-code .send-again').attr('type','login_with_otp')
+    })
+
+    var forgetPwdType = false
+        // when user press forget password button
+    $(document).on('click', '#recovery-pwd', function() {
+        AuthRequest($('.mobile-num-input').val(), 'recovery_password')
+        $('.container-seng-again-code .send-again').attr('type','recovery_password')
+        forgetPwdType = true
+        $('.login-box .enter-the-token .title').text('بازیابی کلمه عبور')
+    })
+
+
+    // will be token step when key enter on input
+    $(".mobile-num-input").keyup(function(e) {
+            if (e.which == 13 && $(".mobile-num-input").val() && $(".mobile-num-input").val().length === 11) {
+                // $(".mobile-number-entry .submit.green").click();
+            }
+        })
+        // set mobile number to token step
+    $(".mobile-number-entry .submit").on('click', function() {
+        setTimeout(function() { $(".login-box .mobile-seting .mobile-number").text($('.mobile-num-input').val()) }, 600)
+
+    })
+
+    // timer step
+    var tokenLogin = 12345;
+
+    $(".token-input").keyup(function(e) {
+
+        // will be back to previous input when keyup backspace
+        if (e.which == 8 || e.which == 46) {
+            $(this).prev(".token-input").focus().val($(this).prev().val());
+            $(this).parent(".input-box").removeClass("error")
+        } // will be select the next input when keyup tab
+        else if (e.which == 9)
+            $(this).select();
+        // will be go to next input when value of input be equal to max length
+        else if (this.value.length == this.maxLength)
+            $(this).next(".token-input").focus();
+    })
+
+    // user can't enter more of max length
+    $(".token-input").on("input", function() {
+        if (this.value.length > this.maxLength)
+            this.value = this.value.slice(0, this.maxLength)
+    })
+
+    // token timer
+    $(document).ready(function() {
+
+        $("#login").on('shown.bs.modal', function() {
+
+            $(this).find('.mobile-num-input').focus();
+
+        });
+
+    });
+
+    var tokenTimer = function() {
+        var ttl = $(".login-box").attr('timer');
+        var timer2 = Math.floor(ttl / 60) + ":" + ttl % 60
+            // focus the first input when timer started
+        var interval = setInterval(function() {
+            var timer = timer2.split(':');
+            //by parsing integer, I avoid all extra string processing
+            var minutes = parseInt(timer[0], 10);
+            var seconds = parseInt(timer[1], 10);
+            --seconds;
+            minutes = (seconds < 0) ? --minutes : minutes;
+            if (minutes < 0)
+                clearInterval(interval);
+            seconds = (seconds < 0) ? 59 : seconds;
+            seconds = (seconds < 10) ? '0' + seconds : seconds;
+            $('.login-box .countdown').html(minutes + ' : ' + seconds);
+            timer2 = minutes + ':' + seconds;
+            if (timer2 == "0:00") {
+                timer2 = "0:1"
+                $(".login-box .countdown-box").delay(800).fadeOut()
+                $(".container-seng-again-code").removeClass('d-none');
+                $(".login-box .spinner").delay(700).fadeOut("fast")
+                $(".login-box .input-box.token").addClass("error")
+                $(".login-box .input-box.token .error-txt").text("اعتبار کد تایید شما به پایان رسیده‌ است.")
+            } else {
+                // check verification
+                $(".last-digit").on("input", function() {
+                    if ($(".token-input").filter(function(e) {
+                            return $(this).val().length == 0;
+                        }).length == 0) {
+                        var tokentVal = ""
+                        var tokenInput1 = $(".first-digit").val()
+                        var tokenInput2 = $(".second-digit").val()
+                        var tokenInput3 = $(".third-digit").val()
+                        var tokenInput4 = $(".fourth-digit").val()
+                        var tokenInput5 = $(this).val()
+                        var password = tokentVal.concat(tokenInput1, tokenInput2, tokenInput3, tokenInput4, tokenInput5);
+                        // verifyPassword($(".mobile-num-input").val(), password);
+                    }
+                })
+            }
+            // reset timer when submit button of mobile number and send token again be clicked.
+            $("#edit-phone-number, .login-box .token .send-again").click(function() {
+                clearInterval(interval);
+                $(".token-input").val("")
+            })
+        }, 1000);
+    }
+
+    // will be back to enter mobile number step when click to edit number button
+    $("#edit-phone-number, #login button.login-back").click(function() {
+            loginStep = "notAuthenticated"
+            $(".mobile-number-entry").delay(600).fadeIn(100)
+            $(".enter-the-token").fadeOut(500)
+            $('.enter-the-password').fadeOut(500)
+            $('#login button.close').delay(600).fadeIn(100)
+            $('#login button.login-back').fadeOut(500)
+        })
+        // send again button
+    // $(".login-box .token .send-again").click(function() {
+    //     if ($(this).hasClass('recovery'))
+    //         $('#recovery-pwd').click();
+    //     else if ($(this).hasClass('login-with-otp'))
+    //         $("#force-otp").click()
+    //     else{
+
+    //     }
+    //         // $(".mobile-number-entry .submit.green").click()
+    // })
+
+    //forget password
+    $(".login-box .forget-password-link").click(function() {
+        $(".login-box .two-step-pass").fadeOut(500)
+            // $(".authenticated").fadeOut(500)
+        $(".login-box .enter-the-token-forget-pass").delay(600).fadeIn(100)
+        tokenTimer()
+    })
+
+    // when user close login modals page be reload
+    $("#login, #twoStepPwd, #signup").on('hide.bs.modal', function() {
+        window.location.reload();
+    });
+
+
+    $(".login-box .input-box.reset input").focus(function() {
+            $(this).parent(".input-box").addClass("info")
+            $(this).parent(".input-box").children(".error-txt").text("کلمه عبور حداقل باید ۶ کارکتر باشد")
+        })
+        // $("#twoStepPwd .input-box.reset input").keyup(function (e) {
+        //     if (e.which == 13 || e.which == 9) {
+        //         $(".login-box .input-box.reset input").css("border-color", "red")
+        //         $(this).parent(".input-box").removeClass("info").addClass("error")
+        //         $(this).parent(".input-box").children(".error-txt").text("کلمه عبور حداقل باید ۶ کارکتر باشد")
+        //     }
+        // })
+    $(".reset-pwd input").focus(function() {
+        $(".input-box").removeClass("error")
+        $(".login-box .input-box.reset input").css("border-color", "#c5c7cb")
+            // $(this).parent(".input-box").children(".error-txt").text("کلمه عبور حداقل باید ۶ کارکتر باشد")
+    })
+    $(".login-box .input-box.reset input").blur(function() {
+        $(this).parent(".input-box").removeClass("info")
+    })
+
+    // will be token step when click on submit button
+    $(".reset-pwd .submit.green").click(function() {
+        var newPwd = $(".input-box.reset input").val()
+        var repeatNewPass = $(".input-box.have-margin input").val()
+        if ((newPwd == repeatNewPass) && newPwd.length > 5) {
+            $(".login-box .two-step-pass").fadeOut(500)
+            $(".login-box .enter-the-token-forget-pass").fadeOut(500)
+            $(".login-box .pwd-changed").delay(600).fadeIn(100)
+            $(".login-box .reset-pwd").fadeOut(500)
+        } else if ((newPwd == repeatNewPass) && newPwd.length < 5) {
+            $(".login-box .input-box.reset input").css("border-color", "red")
+            $(".input-box.have-margin input").parent(".input-box").addClass("error")
+            $(".input-box.have-margin input").parent(".input-box").children(".error-txt").text("کلمه عبور حداقل باید ۶ کارکتر باشد")
+        } else {
+            $(".login-box .input-box.reset input").css("border-color", "red")
+            $(".input-box.have-margin input").parent(".input-box").addClass("error")
+            $(".input-box.have-margin input").parent(".input-box").children(".error-txt").text("تکرار کلمه عبور نادرست می‌باشد.")
+        }
+    })
+
+    //will be token step when key enter on input
+    $(".input-box.have-margin input").keyup(function(e) {
+        var newPwd = $(".input-box.reset input").val()
+        var repeatNewPass = $(".input-box.have-margin input").val()
+        if (e.which == 13 && (newPwd == repeatNewPass) && newPwd.length > 5) {
+            $(".login-box .two-step-pass").fadeOut(500)
+            $(".login-box .enter-the-token-forget-pass").fadeOut(500)
+            $(".login-box .pwd-changed").delay(600).fadeIn(100)
+            $(".login-box .reset-pwd").fadeOut(500)
+        } else if (e.which == 13 && (newPwd == repeatNewPass) && newPwd.length < 5) {
+            $(".login-box .input-box.reset input").css("border-color", "red")
+            $(".input-box.have-margin input").parent(".input-box").addClass("error")
+            $(".input-box.have-margin input").parent(".input-box").children(".error-txt").text("کلمه عبور حداقل باید ۶ کارکتر باشد")
+        } else if (e.which == 13) {
+            $(".login-box .input-box.reset input").css("border-color", "red")
+            $(".login-box .input-box.have-margin input").parent(".input-box").addClass("error")
+            $(".login-box .input-box.have-margin input").parent(".input-box").children(".error-txt").text("تکرار کلمه عبور نادرست می‌باشد.")
+        }
+    })
+
+    $(".reset-pwd input").on("input", function() {
+        $(".login-box .input-box.reset input").css("border-color", "#c5c7cb")
+        $(".reset-pwd .input-box").removeClass("error")
+    })
+
+
+    function clickSetPasswordBtn() {
+        var newPwd = $("#password-opration-input")
+        var confirmPwd = $("#password-opration-input-repeat")
+        $(".password-opration .input-box").each(function() {
+            if (!$(this).children("input").val()) {
+                $(this).addClass("error")
+                $(this).children(".error-txt").text("پر کردن این فیلد الزامیست.")
+            }
+        })
+        if (newPwd.val() === confirmPwd.val() && newPwd.val().length > 5) {
+            SetPassword(newPwd.val());
+        } else if (newPwd.val() !== confirmPwd.val() && newPwd.val().length > 5) {
+            confirmPwd.parent(".input-box").addClass("error")
+            confirmPwd.parent(".input-box").children(".error-txt").text("کلمه عبور یکسان نمی‌باشد.")
+        } else if (newPwd.val() === confirmPwd.val() && newPwd.val().length < 6) {
+            confirmPwd.parent(".input-box").addClass("error")
+            confirmPwd.parent(".input-box").children(".error-txt").text("کلمه عبور حداقل باید ۶ کارکتر باشد.")
+        } else if (newPwd.val() !== confirmPwd.val() && newPwd.val().length < 6) {
+            confirmPwd.parent(".input-box").addClass("error")
+            confirmPwd.parent(".input-box").children(".error-txt").text("کلمه عبور یکسان نمی‌باشد و حداقل باید ۶ کارکتر باشد.")
+        }
+    }
+
+    function SetPassword(pwd) {
+        var data = JSON.stringify({ password: pwd, password_confirmation: pwd });
+        var user = JSON.parse(localStorage.getItem('banimodeUserProd'))
+        var config = {
+            method: 'post',
+            url: 'v2/profile/set-password',
+            baseURL: baseUriAPI,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + user.token,
+            },
+            data: data
+        };
+        axios(config)
+
+        .then(function(response) {
+                $(".login-box .password-opration").fadeOut(500)
+                $(".login-box .password-setted").delay(600).fadeIn(100)
+                if (window.location.href.includes('back')) {
+                    $(".login-box .password-setted .submit.green").text('ادامه').attr('href', (baseUri + window.location.href.split('back=')[1]))
+                } else if (window.location.pathname.split('/')[1] !== "") {
+                    // $(".login-box .password-setted .submit.green").text('ادامه').removeAttr('href').on('click', function() { window.location.reload() })
+                }
+            })
+            .catch(function(error) {
+                console.log(error);
+            });
+    }
+
+
+    function AuthRequest(mobile, flag,type) {
+        var data = {
+            'phone': mobile.toString(),
+            type:type
+        }
+        if (flag === 'login_with_otp') {
+            data.flag = flag
+        } else if (flag === 'recovery_password') {
+            data.flag = flag
+        }
+        axios.post('v2/auth/request', data, {
+            baseURL: baseUriAPI,
+            headers: {
+                'platform': 'desktop'
+            }
+        }).then(function(response) {
+            if (response.data.status_code == 200) {
+                $(".login-box").attr('timer', response.data.data.ttl);
+                showPasswordContianer(response.data.data.user.has_password, flag, (flag === 'login_with_otp' || flag === 'recovery_password') ? true : false);
+                return true;
+            } else {
+                $(".mobile-number-entry .input-box").addClass("error").find(".error-txt").text(Object.values(response.data.data)[0][0]);
+                return false;
+            }
+        }).catch(function(error) {
+            if (checkNested(error, 'response', 'data', 'data') && Object.values(error.response.data.data)[0][0] !== undefined) {
+                $(".mobile-number-entry .input-box").addClass("error").find(".error-txt").text(Object.values(error.response.data.data)[0][0]);
+            } else {
+                $(".mobile-number-entry .input-box").addClass("error").find(".error-txt").text('خطایی در اتصال رخ داده است. لطفا مجدداتلاش نمایید.');
+
+            }
+
+        });
+
+    }
+
+    function showPasswordContianer(hasPassword, flag, forceOtp) {
+        $(".mobile-number-entry").fadeOut(500)
+        if (hasPassword && !forceOtp) {
+            $('.enter-the-password').delay(600).fadeIn(100)
+            $('#login button.login-back').delay(600).fadeIn(100)
+            $('#login button.close').fadeOut(500)
+            setTimeout(function() { $('#login-password-input').focus() }, 750)
+        } else {
+            $(".enter-the-token").delay(600).fadeIn(100)
+            if (flag === 'recovery_password') {
+                $('.enter-the-token .send-again').addClass('recovery')
+            }
+            if (flag === 'login_with_otp') {
+                $('.enter-the-token .send-again').addClass('login-with-otp')
+            }
+            $('#login button.close').delay(600).fadeIn(100)
+            $('#login button.login-back').fadeOut(500)
+            $(".login-box .countdown-box").delay(500).fadeIn()
+            $(".container-seng-again-code").addClass('d-none');
+            $(".login-box .enter-the-password").fadeOut(500);
+            $(".login-box .spinner").delay(700).fadeIn("fast")
+            $(".login-box .input-box.token").removeClass("error")
+            $(".login-box .input-box.token .error-txt").text("")
+            $(".token-input").each(function() {
+                this.value = ""
+            })
+            tokenTimer()
+            setTimeout(function() { $(".first-digit").focus() }, 1000)
+        }
+    }
+
+    // remove login modal whene user is into the login page 
+    if ($('div').hasClass('login-page')) {
+        $('#login').remove()
+        $(".login-register").fadeOut()
+    }
+
+
+    var userToken = ""
+    $(document).on('input', '.token-input', function() {
+        if ($(".token-input").filter(function(e) {
+                return $(this).val().length == 0;
+            }).length == 0) {
+
+            var tokentVal = ""
+            var tokenInput1 = $(".first-digit").val()
+            var tokenInput2 = $(".second-digit").val()
+            var tokenInput3 = $(".third-digit").val()
+            var tokenInput4 = $(".fourth-digit").val()
+            var tokenInput5 = $(".last-digit").val()
+            userToken = tokentVal.concat(tokenInput1, tokenInput2, tokenInput3, tokenInput4, tokenInput5);
+            verifyPassword($(".mobile-num-input").val(), 'token', forgetPwdType);
+        }
+    });
+
+    // login with password
+    $(document).on('click', '#run-verify', function() {
+        verifyPassword($(".mobile-num-input").val(), 'password', forgetPwdType)
+    })
+    $(document).on('keyup', '#login-password-input', function(e) {
+        e.preventDefault()
+        if (e.which === 13)
+            verifyPassword($(".mobile-num-input").val(), 'password', forgetPwdType)
+    })
+
+    function verifyPassword(mobile, method, forgetPwd) {
+        var dataObj = {
+            'phone': mobile.toString()
+        };
+        if (method === 'token') {
+            dataObj.token = userToken
+        }
+        if (method === 'password') {
+            dataObj.password = $('#login-password-input').val()
+        }
+        if (providerObj.click_id && providerObj.provider) {
+            dataObj.click_id = providerObj.click_id;
+            dataObj.provider = providerObj.provider;
+        }
+        axios.post('v2/auth', dataObj, {
+            baseURL: baseUriAPI,
+            headers: {
+                'Authorization': 'Bearer ' + customer.token,
+                'platform': 'desktop'
+                    //                 'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        }).then(function(response) {
+            if (response.data.status_code == 200) {
+                /**
+                 * ga4 login and signup
+                 */
+                 if (response.data.datanew_user){
+                    GA4Event("sign_up",{method: method});
+                 }else{
+                    GA4Event("login",{method: method});
+                 }
+                 successLogin(response.data.data, forgetPwd);
+                return true;
+            } else if (response.data.status_code == 201) {
+                GA4Event("sign_up",{method: method});
+                dataLayer.push({ 'event': 'WEBREGISTER' });
+                successSignUp(response.data.data);
+                return true;
+            } else {
+                if (method === 'token') {
+                    $(".enter-the-token .token").addClass("error").find(".error-txt").text(response.data.message);
+                }
+                if (method === 'password') {
+                    $('.login-container.enter-the-password .input-box').addClass('error').find('.error-txt').text(response.data.message)
+                }
+                return false;
+            }
+        }).catch(function(error) {
+            $(".enter-the-token .token").addClass("error").find(".error-txt").text('خطایی رخ داده است. لطفا مجددا تلاش فرمایید.');
+        });
+    }
+
+    function successLogin(data, forgetPwd) {
+        $(".login-box .mobile-number-entry").fadeOut(500)
+        $(".login-box .two-step-pass").fadeOut(500)
+        $(".login-box .enter-the-token-forget-pass").fadeOut(500)
+        $(".login-box .pwd-changed").fadeOut(500)
+        $(".login-box .reset-pwd").delay(600).fadeIn(100)
+        if ($('#login').attr('data-login-page') === 'cart') {
+            // $('#login .signup-pages').hide(50);
+            $('#login .signup-cart').show();
+        }
+        if (data.modal_set_password && !forgetPwd) {
+            $(".login-box .enter-the-token").fadeOut(500)
+            $(".login-box .enter-the-password").fadeOut(500)
+            $(".login-box .authenticated").delay(600).fadeIn(100)
+            $('#login button.close').delay(600).fadeIn(100)
+            $('#login button.login-back').fadeOut(500)
+            if (window.location.href.includes('back')) {
+                $(".btn-box.authenticated .submit.green").text('ادامه').attr('href', (baseUri + window.location.href.split('back=')[1]))
+            } else if (window.location.pathname.split('/')[1] !== "") {
+                // $(".btn-box.authenticated .submit.green").text('ادامه').removeAttr('href').on('click', function() { window.location.reload() })
+            }
+            // $("#set-password").on("click", function () {
+            //     $(".login-box .authenticated").fadeOut(500)
+            //     $(".login-box .password-opration").delay(600).fadeIn(100)
+            // })
+        } else if (!forgetPwd) {
+            $('#login button.login-back').hide()
+            $(".login-container.enter-the-password").fadeOut(100)
+            $(".login-container.enter-the-token").fadeOut(100)
+            $(".login-box .authenticated").delay(300).fadeIn(100)
+            $("#set-password").hide()
+            $("#return-page").removeClass('d-none')
+            $(".login-box .login-container .description.success").hide()
+        }
+
+        if (forgetPwd) {
+            $('.login-box .enter-the-token').fadeOut(500)
+            $('.login-box .password-opration').delay(600).fadeIn(100)
+            $('.login-box .password-opration .title').text('بازیابی کلمه عبور')
+        }
+
+        setUserData(data);
+        window.customer = getUserData();
+        if (JSON.parse(window.customer).user.email !== "" || JSON.parse(window.customer).user.email !== null) {
+            var email = 'thomas.bianchi@email.com'
+            var properties = {
+                'FIRSTNAME': JSON.parse(window.customer).user.firstname,
+                'LASTNAME': JSON.parse(window.customer).user.lastname,
+                'id': JSON.parse(window.customer).user.id_customer,
+            }
+            sendinblue.identify(email, properties)
+        }
+        // if (!($('div').hasClass('login-page'))) window.location.reload();
+    }
+
+    function successSignUp(data) {
+        $(".login-box .mobile-number-entry").fadeOut(500)
+        $(".login-box .enter-the-password").fadeOut(500)
+        $(".login-box .enter-the-token").fadeOut(500)
+        $('#login button.close').delay(600).fadeIn(100)
+        $('#login button.login-back').fadeOut(500)
+        $(".login-box .two-step-pass").fadeOut(500)
+        $(".login-box .enter-the-token-forget-pass").fadeOut(500)
+        $(".login-box .pwd-changed").fadeOut(500)
+        $(".login-box .reset-pwd").delay(600).fadeIn(100)
+        if (data.modal_set_password) {
+            $(".login-box .authenticated").delay(600).fadeIn(100)
+
+        } else {
+            // if (window.location.href.includes('back')) window.location.href = baseUri + window.location.href.split('back=')[1]
+            // else window.location.reload()
+        }
+        setUserData(data);
+        window.customer = getUserData();
+    }
+    $(document).on('click','#return-page',function(e){
+          if (window.location.href.includes('back')) window.location.href = baseUri + window.location.href.split('back=')[1]
+            else window.location.reload()
+    })
+});

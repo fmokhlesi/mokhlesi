@@ -1,0 +1,20 @@
+.parent .look-all {
+  width: 250px;
+  height: 55px;
+  text-align: center;
+
+  border: 1px solid #2b3e2e;
+  border-radius: 28px;
+  font-family: yekan;
+  color: #00bf6f;
+
+  margin: 50px auto;
+  margin-bottom: 70px;
+}
+.parent .look-all a {
+  text-decoration: unset;
+  color: #00bf6f;
+  font-size: 20px;
+  text-align: center;
+  line-height: 55px;
+}
